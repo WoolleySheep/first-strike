@@ -2,8 +2,7 @@
 ## Programming game between a rocket and a turret
 
 ### TODO
-* Implement board rendering
-* Implement game advancement logic
+* Add more generated input checks
 * Implement basic controller algorithms
 * Implement animation
 * Refactor with NamedTuple

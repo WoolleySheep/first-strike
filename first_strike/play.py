@@ -88,15 +88,38 @@ def calc_angular_acceleration(game_data, theta1):
     return (theta1 - theta2) / timestep
 
 
-def calc_main_engine_acceleration(game_data):
+def calc_main_engine_acceleration(game_data, main_thruster_force):
 
     angle = game_data.history.rocket_history.angles[-1]
-    force = game_data.properties.rocket_properties.main_engine_force
     mass = game_data.properties.rocket_properties.mass
 
-    fx, fy = pol2cart(force, angle)
+    fx, fy = pol2cart(main_thruster_force, angle)
 
     return fx / mass, fy / mass
+
+
+def calc_thruster_acceleration(game_data, side, force):
+
+    mass = game_data.properties.rocket_properties.mass
+    angle = game_data.history.rocket_history.angles[-1]
+    if side == "left":
+        thruster_angle = normalise_angle(angle - math.pi / 2)
+    else:
+        thruster_angle = normalise_angle(angle + math.pi / 2)
+    force_x, force_y = pol2cart(force, thruster_angle)
+    return force_x / mass, force_y / mass
+
+
+def calc_thruster_angular_acceleration(game_data, rotation, force):
+
+    length = game_data.properties.rocket_properties.length
+    torque = force * length / 2
+    moment_of_inertia = game_data.properties.rocket_properties.moment_of_inertia
+    angular_acc = torque / moment_of_inertia
+
+    if rotation == "clockwise":
+        return -angular_acc
+    return angular_acc
 
 
 def remove_out_of_bounds_projectiles(game_data):
@@ -154,22 +177,67 @@ def advance_game_data(rocket_inputs, turret_inputs):
     rocket_acc = calc_acceleration(game_data, rocket_vel)
     rocket_ang_vel = calc_angular_velocity(game_data)
     rocket_ang_acc = calc_angular_acceleration(game_data, rocket_ang_vel)
-    main_engine_acc = calc_main_engine_acceleration(game_data)
+    main_engine_acc = calc_main_engine_acceleration(game_data, main_engine_force)
+    left_front_thruster_acc = calc_thruster_acceleration(
+        game_data, "left", left_front_thruster_force
+    )
+    left_rear_thruster_acc = calc_thruster_acceleration(
+        game_data, "left", left_rear_thruster_force
+    )
+    right_front_thruster_acc = calc_thruster_acceleration(
+        game_data, "right", right_front_thruster_force
+    )
+    right_rear_thruster_acc = calc_thruster_acceleration(
+        game_data, "right", right_rear_thruster_force
+    )
+    left_front_thruster_ang_acc = calc_thruster_angular_acceleration(
+        game_data, "clockwise", left_front_thruster_force
+    )
+    left_rear_thruster_ang_acc = calc_thruster_angular_acceleration(
+        game_data, "anti-clockwise", left_rear_thruster_force
+    )
+    right_front_thruster_ang_acc = calc_thruster_angular_acceleration(
+        game_data, "anti-clockwise", right_front_thruster_force
+    )
+    right_rear_thruster_ang_acc = calc_thruster_angular_acceleration(
+        game_data, "clockwise", right_rear_thruster_force
+    )
 
-    a_x = rocket_acc[0] + main_engine_acc[0]
-    a_y = rocket_acc[1] + main_engine_acc[1]
-    a_theta = rocket_ang_acc
+    a_x = (
+        rocket_acc[0]
+        + main_engine_acc[0]
+        + left_front_thruster_acc[0]
+        + left_rear_thruster_acc[0]
+        + right_front_thruster_acc[0]
+        + right_rear_thruster_acc[0]
+    )
+    a_y = (
+        rocket_acc[1]
+        + main_engine_acc[1]
+        + left_front_thruster_acc[1]
+        + left_rear_thruster_acc[1]
+        + right_front_thruster_acc[1]
+        + right_rear_thruster_acc[1]
+    )
+    a_theta = (
+        rocket_ang_acc
+        + left_front_thruster_ang_acc
+        + left_rear_thruster_ang_acc
+        + right_front_thruster_ang_acc
+        + right_rear_thruster_ang_acc
+    )
 
-    d_x = a_x * timestep
-    d_y = a_x * timestep
-    d_theta = a_theta * timestep
+    v_x, v_y = rocket_vel
+    new_v_x = v_x + a_x * timestep
+    new_v_y = v_y + a_y * timestep
+    new_v_theta = rocket_ang_vel + a_theta * timestep
 
     locations = game_data.history.rocket_history.locations
     x, y = locations[-1]
-    locations.append((x + d_x, y + d_y))
+    locations.append((x + new_v_x * timestep, y + new_v_y * timestep))
 
     angles = game_data.history.rocket_history.angles
-    angles.append(angles[-1] + d_theta)
+    angles.append(angles[-1] + new_v_theta * timestep)
 
     # Existing projectiles
     advance_projectiles(game_data)
@@ -186,7 +254,9 @@ def advance_game_data(rocket_inputs, turret_inputs):
         current_time = game_data.history.timesteps[-1]
         projectile_histories = game_data.history.projectile_histories
 
-        projectile_histories.append(ProjectileHistory([turret_location], angle, current_time))
+        projectile_histories.append(
+            ProjectileHistory([turret_location], angle, current_time)
+        )
 
     # Turret
     d_theta = rotation_speed * timestep
@@ -319,7 +389,9 @@ def play_first_strike():
         advance_game_data(rocket_inputs, turret_inputs)
 
         rocket_win = does_rocket_impact(game_data)
-        turret_win = does_projectile_impact(game_data) or not is_rocket_within_bounds(game_data)
+        turret_win = does_projectile_impact(game_data) or not is_rocket_within_bounds(
+            game_data
+        )
         playtime_exceeded = (
             game_data.history.timesteps[-1]
             > game_data.environment.max_playtime - game_data.environment.timestep
@@ -332,3 +404,5 @@ def play_first_strike():
         if turret_win:
             return TURRET_WIN
 
+
+print(play_first_strike())
