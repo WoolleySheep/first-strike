@@ -1,5 +1,36 @@
+import math
+
 from game_setup import game_data
+from helpers import normalise_angle
 
 def turret_controller():
 
-    return 0.1, False
+    rotation_speed = game_data.properties.turret_properties.max_rotation_speed
+
+    # Decrease the angle to the rocket
+    angle_rocket_rel_to_turret = angle_to_rocket()
+    if angle_rocket_rel_to_turret > 0:
+        rs = rotation_speed
+    else:
+        rs = -rotation_speed
+
+    # If sufficient time has elapsed, fire the cannon
+    firing_interval = game_data.properties.turret_properties.firing_interval
+    when_fired = game_data.history.turret_history.when_fired
+    if not when_fired:
+        fire = True
+    else:
+        current_time = game_data.history.timesteps[-1]
+        last_fired = when_fired[-1]
+        fire = current_time - last_fired >= firing_interval
+
+    return rs, fire
+
+def angle_to_rocket():
+
+    turret_x, turret_y = game_data.properties.turret_properties.location
+    turret_angle = game_data.history.turret_history.angles[-1]
+    rocket_x, rocket_y = game_data.history.rocket_history.locations[-1]
+
+    angle = math.atan2(rocket_y - turret_y, rocket_x - turret_x)
+    return normalise_angle(angle - turret_angle)

@@ -133,7 +133,7 @@ def remove_out_of_bounds_projectiles(game_data):
     for projectile_history in projectile_histories:
         x, y = projectile_history.locations[-1]
         if is_within_bounds(width, height, x, y):
-            new_projectile_histories.projectile_history
+            new_projectile_histories.append(projectile_history)
 
     game_data.history.projectile_histories = new_projectile_histories
 
@@ -145,9 +145,10 @@ def advance_projectiles(game_data):
     projectile_histories = game_data.history.projectile_histories
 
     for projectile_history in projectile_histories:
-        x, y = projectile_history.locations[-1]
+        projectile_locations = projectile_history.locations
+        x, y = projectile_locations[-1]
         d_x, d_y = pol2cart(projectile_speed * timestep, projectile_history.angle)
-        projectile_history.append(x + d_x, y + d_y)
+        projectile_locations.append((x + d_x, y + d_y))
 
 
 
@@ -317,7 +318,7 @@ def sufficient_time_elapsed_between_shots(game_data):
     if not when_fired:
         return True
 
-    current_time = game_data.environment.timesteps[-1]
+    current_time = game_data.history.timesteps[-1]
     firing_interval = game_data.properties.turret_properties.firing_interval
 
     return current_time - when_fired[-1] >= firing_interval
@@ -365,9 +366,9 @@ def play_first_strike():
         turret_inputs_invalid = (
             len(turret_inputs) != 2
             or type(turret_inputs[0]) is not float
-            or not (-math.pi < turret_inputs[0] <= math.pi)
+            or not (-game_data.properties.turret_properties.max_rotation_speed <= turret_inputs[0] <= game_data.properties.turret_properties.max_rotation_speed)
             or type(turret_inputs[1]) is not bool
-            or not sufficient_time_elapsed_between_shots(game_data)
+            or (turret_inputs[1] and not sufficient_time_elapsed_between_shots(game_data))
         )
 
         if rocket_inputs_invalid and turret_inputs_invalid:
