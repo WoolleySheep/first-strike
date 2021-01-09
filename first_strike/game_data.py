@@ -61,6 +61,7 @@ class TurretHistory:
 class ProjectileHistory:
     locations: List[Location]
     angle: float
+    launch_time: float
 
 
 @dataclass

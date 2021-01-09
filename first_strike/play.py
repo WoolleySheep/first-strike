@@ -183,9 +183,10 @@ def advance_game_data(rocket_inputs, turret_inputs):
 
         turret_location = game_data.properties.turret_properties.location
         angle = game_data.history.turret_history.angles[-1]
+        current_time = game_data.history.timesteps[-1]
         projectile_histories = game_data.history.projectile_histories
 
-        projectile_histories.append(ProjectileHistory([turret_location], angle))
+        projectile_histories.append(ProjectileHistory([turret_location], angle, current_time))
 
     # Turret
     d_theta = rotation_speed * timestep
@@ -331,5 +332,3 @@ def play_first_strike():
         if turret_win:
             return TURRET_WIN
 
-
-print(play_first_strike())
