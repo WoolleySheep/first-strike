@@ -13,9 +13,9 @@ def rocket_controller():
     # If facing away from the turret, spin the rocket using the thrusters
     angle_turret_rel_to_rocket = angle_to_turret()
     if angle_turret_rel_to_rocket > 0:
-        lf, lr, rf, rr = thruster_force, 0.0, 0.0, thruster_force
-    else:
         lf, lr, rf, rr = 0.0, thruster_force, thruster_force, 0.0
+    else:
+        lf, lr, rf, rr = thruster_force, 0.0, 0.0, thruster_force
 
     # If turret is within cone of vision, turn on the main drive
     if abs(angle_turret_rel_to_rocket) <= math.pi / 6:  # Cone of vision is hardcoded

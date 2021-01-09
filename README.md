@@ -2,8 +2,6 @@
 ## Programming game between a rocket and a turret
 
 ### TODO
-* Implement basic controller algorithms
-* Add thrust triangles to board
 * Implement animation
 * Refactor with NamedTuple
 * Check game_data hasn't been tampered with between turns

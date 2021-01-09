@@ -2,35 +2,14 @@ import math
 
 from game_data import ProjectileHistory
 from game_setup import game_data
-from helpers import normalise_angle
+from generate_board import generate_board
+from helpers import normalise_angle, cart2pol, pol2cart, calc_magnitude
 from rocket_controller import rocket_controller
 from turret_controller import turret_controller
 
 ROCKET_WIN = 0
 TURRET_WIN = 1
 DRAW = 2
-
-
-def cart2pol(x, y):
-
-    r = calc_magnitude(x, y)
-    theta = math.atan2(y, x)
-
-    return r, theta
-
-
-def pol2cart(r, theta):
-
-    x = r * math.cos(theta)
-    y = r * math.sin(theta)
-
-    return x, y
-
-
-def calc_magnitude(x, y):
-
-    return math.sqrt(x ** 2 + y ** 2)
-
 
 def calc_velocity(game_data):
 
@@ -382,6 +361,8 @@ def play_first_strike():
             return ROCKET_WIN
 
         advance_game_data(rocket_inputs, turret_inputs)
+
+        generate_board(rocket_inputs)
 
         rocket_win = does_rocket_impact(game_data)
         turret_win = does_projectile_impact(game_data) or not is_rocket_within_bounds(
