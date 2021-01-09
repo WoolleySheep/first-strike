@@ -366,7 +366,8 @@ def play_first_strike():
         rocket_inputs_invalid = (
             len(rocket_inputs) != 5
             or any([type(input_) is not float for input_ in rocket_inputs])
-            or any([input_ < 0 for input_ in rocket_inputs])
+            or not (0 <= rocket_inputs[0] <= game_data.properties.rocket_properties.main_engine_force)
+            or not all([0 <= input_ <= game_data.properties.rocket_properties.thruster_force for input_ in rocket_inputs[1:]])
         )
         turret_inputs_invalid = (
             len(turret_inputs) != 2
