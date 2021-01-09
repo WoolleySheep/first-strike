@@ -210,7 +210,7 @@ def advance_game_data(rocket_inputs, turret_inputs):
     locations.append((x + new_v_x * timestep, y + new_v_y * timestep))
 
     angles = game_data.history.rocket_history.angles
-    angles.append(angles[-1] + new_v_theta * timestep)
+    angles.append(normalise_angle(angles[-1] + new_v_theta * timestep))
 
     # Existing projectiles
     advance_projectiles(game_data)

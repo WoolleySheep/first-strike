@@ -14,15 +14,18 @@ def turret_controller():
     else:
         rs = -rotation_speed
 
-    # If sufficient time has elapsed, fire the cannon
-    firing_interval = game_data.properties.turret_properties.firing_interval
+    # If sufficient time has elapsed, and rocket is within cone of vision, fire the cannon
+    if abs(angle_rocket_rel_to_turret) > math.pi / 6:
+        return rs, False
+
     when_fired = game_data.history.turret_history.when_fired
     if not when_fired:
-        fire = True
-    else:
-        current_time = game_data.history.timesteps[-1]
-        last_fired = when_fired[-1]
-        fire = current_time - last_fired >= firing_interval
+        return rs, True
+
+    firing_interval = game_data.properties.turret_properties.firing_interval
+    current_time = game_data.history.timesteps[-1]
+    last_fired = when_fired[-1]
+    fire = current_time - last_fired >= firing_interval
 
     return rs, fire
 

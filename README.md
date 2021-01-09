@@ -2,9 +2,11 @@
 ## Programming game between a rocket and a turret
 
 ### TODO
+* Seperate mechanics/physics
 * Implement animation
 * Refactor with NamedTuple
 * Check game_data hasn't been tampered with between turns
+* Add objects to block rocket and projectiles
 ### Description
 The aim of the game is simple:
 * The rocket has to crash into the turret

@@ -91,7 +91,7 @@ def generate_board(rocket_inputs):
 
 def plot_propulsion_system(force, projection_location, direction_angle):
 
-    max_length = 5.0
+    max_length = 10
     max_main_engine_force = game_data.properties.rocket_properties.main_engine_force
 
     thrust_ratio = force / max_main_engine_force
