@@ -2,6 +2,7 @@ import math
 
 from game_data import ProjectileHistory
 from game_setup import game_data
+from helpers import normalise_angle
 from rocket_controller import rocket_controller
 from turret_controller import turret_controller
 
@@ -148,14 +149,6 @@ def advance_projectiles(game_data):
         d_x, d_y = pol2cart(projectile_speed * timestep, projectile_history.angle)
         projectile_history.append(x + d_x, y + d_y)
 
-
-def normalise_angle(angle):
-
-    if angle > math.pi:
-        return angle - 2 * math.pi
-    if angle <= -math.pi:
-        return angle + 2 * math.pi
-    return angle
 
 
 def advance_game_data(rocket_inputs, turret_inputs):
@@ -337,12 +330,12 @@ def play_first_strike():
         rocket_error = None
         turret_error = None
         try:
-            rocket_inputs = rocket_controller(game_data)
+            rocket_inputs = rocket_controller()
         except Exception as error:
             rocket_error = error
             rocket_controller_failed = True
         try:
-            turret_inputs = turret_controller(game_data)
+            turret_inputs = turret_controller()
         except Exception as error:
             turret_error = error
             turret_controller_failed = True

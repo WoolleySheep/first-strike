@@ -2,10 +2,11 @@
 ## Programming game between a rocket and a turret
 
 ### TODO
-* Add more generated input checks
 * Implement basic controller algorithms
+* Add thrust triangles to board
 * Implement animation
 * Refactor with NamedTuple
+* Check game_data hasn't been tampered with between turns
 ### Description
 The aim of the game is simple:
 * The rocket has to crash into the turret
