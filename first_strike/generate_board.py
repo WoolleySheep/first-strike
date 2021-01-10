@@ -60,16 +60,26 @@ def generate_board(rocket_inputs):
         c="g",
     )
 
-    
     # Plot main engine
-    plot_propulsion_system(rocket_inputs[0], rocket_rear_location, normalise_angle(rocket_angle - math.pi))
-    
+    plot_propulsion_system(
+        rocket_inputs[0], rocket_rear_location, normalise_angle(rocket_angle - math.pi)
+    )
+
     # Plot thrusters
     plot_propulsion_system(rocket_inputs[1], rocket_front_location, perpendicular_angle)
-    plot_propulsion_system(rocket_inputs[2], thruster_left_location, perpendicular_angle)
-    plot_propulsion_system(rocket_inputs[3], rocket_front_location, normalise_angle(perpendicular_angle - math.pi))
-    plot_propulsion_system(rocket_inputs[4], thruster_right_location, normalise_angle(perpendicular_angle - math.pi))
-
+    plot_propulsion_system(
+        rocket_inputs[2], thruster_left_location, perpendicular_angle
+    )
+    plot_propulsion_system(
+        rocket_inputs[3],
+        rocket_front_location,
+        normalise_angle(perpendicular_angle - math.pi),
+    )
+    plot_propulsion_system(
+        rocket_inputs[4],
+        thruster_right_location,
+        normalise_angle(perpendicular_angle - math.pi),
+    )
 
     # Plot projectiles
     projectiles = game_data.history.projectile_histories
@@ -89,6 +99,7 @@ def generate_board(rocket_inputs):
     # Show the plot (remove this)
     plt.show()
 
+
 def plot_propulsion_system(force, projection_location, direction_angle):
 
     max_length = 10
@@ -99,12 +110,20 @@ def plot_propulsion_system(force, projection_location, direction_angle):
 
     left_angle = normalise_angle(direction_angle + math.pi / 6)
     rel_left_location = pol2cart(edge_length, left_angle)
-    left_location = projection_location[0] + rel_left_location[0], projection_location[1] + rel_left_location[1]
-    
+    left_location = (
+        projection_location[0] + rel_left_location[0],
+        projection_location[1] + rel_left_location[1],
+    )
+
     right_angle = normalise_angle(direction_angle - math.pi / 6)
     rel_right_location = pol2cart(edge_length, right_angle)
-    right_location = projection_location[0] + rel_right_location[0], projection_location[1] + rel_right_location[1]
+    right_location = (
+        projection_location[0] + rel_right_location[0],
+        projection_location[1] + rel_right_location[1],
+    )
 
-    patch = plt.Polygon([list(projection_location), list(left_location), list(right_location)], color="r")
+    patch = plt.Polygon(
+        [list(projection_location), list(left_location), list(right_location)],
+        color="r",
+    )
     plt.gca().add_patch(patch)
-

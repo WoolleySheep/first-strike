@@ -7,6 +7,7 @@ from game_data import (
     TurretHistory,
     History,
     GameData,
+    Coordinate,
 )
 
 WIDTH = 200.0

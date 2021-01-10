@@ -1,5 +1,6 @@
 from game_setup import game_data
 
+
 def is_within_bounds(x, y):
 
     w = game_data.environment.width

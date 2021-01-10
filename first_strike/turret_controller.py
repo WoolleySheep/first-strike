@@ -3,6 +3,7 @@ import math
 from game_setup import game_data
 from math_helpers import normalise_angle
 
+
 def turret_controller():
 
     rotation_speed = game_data.properties.turret_properties.max_rotation_speed
@@ -28,6 +29,7 @@ def turret_controller():
     fire = current_time - last_fired >= firing_interval
 
     return rs, fire
+
 
 def angle_to_rocket():
 

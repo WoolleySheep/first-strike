@@ -5,6 +5,7 @@ from math_helpers import normalise_angle
 # Must be imported
 from game_setup import game_data
 
+
 def rocket_controller():
 
     max_thruster_force = game_data.properties.rocket_properties.max_thruster_force
@@ -15,7 +16,6 @@ def rocket_controller():
     p_c = 0.5
     d_c = -0.7
     i_c = 0.01
-
 
     # Proportional
     angular_disp = angle_to_turret()
@@ -45,9 +45,9 @@ def rocket_controller():
         me = max_main_engine_force
     else:
         me = 0.0
-    
 
     return me, lf, lr, rf, rr
+
 
 def angle_to_turret():
 
@@ -57,6 +57,3 @@ def angle_to_turret():
 
     angle = math.atan2(turret_y - rocket_y, turret_x - rocket_x)
     return normalise_angle(angle - rocket_angle)
-
-
-
