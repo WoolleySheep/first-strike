@@ -1,14 +1,14 @@
 import math
 
-from helpers import normalise_angle
+from math_helpers import normalise_angle
 
 # Must be imported
 from game_setup import game_data
 
 def rocket_controller():
 
-    max_thruster_force = game_data.properties.rocket_properties.thruster_force
-    main_engine_force = game_data.properties.rocket_properties.main_engine_force
+    max_thruster_force = game_data.properties.rocket_properties.max_thruster_force
+    max_main_engine_force = game_data.properties.rocket_properties.max_main_engine_force
 
     # If facing away from the turret, spin the rocket using the thrusters
     # Use PID controller
@@ -42,7 +42,7 @@ def rocket_controller():
 
     # If turret is within cone of vision, turn on the main drive
     if abs(angular_disp) <= math.pi / 6:  # Cone of vision is hardcoded
-        me = main_engine_force
+        me = max_main_engine_force
     else:
         me = 0.0
     

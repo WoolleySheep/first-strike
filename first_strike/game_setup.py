@@ -12,7 +12,7 @@ from game_data import (
 WIDTH = 200.0
 HEIGHT = 200.0
 TIMESTEP = 0.1
-MAX_PLAYTIME = 120
+MAX_GAME_TIME = 120
 
 MASS = 100.0
 ROCKET_TARGET_RADIUS = 5.0
@@ -31,7 +31,7 @@ ROCKET_START_ANGLE = 0.0
 
 TURRET_START_ANGLE = 0.0
 
-environment = Environment(WIDTH, HEIGHT, TIMESTEP, MAX_PLAYTIME)
+environment = Environment(WIDTH, HEIGHT, TIMESTEP, MAX_GAME_TIME)
 
 rocket_properties = RocketProperties(
     MASS,

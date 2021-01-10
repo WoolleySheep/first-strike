@@ -2,8 +2,9 @@
 ## Programming game between a rocket and a turret
 
 ### TODO
+* Add Coordinate class
 * Seperate mechanics/physics
-* Implement animation
+* Implement animation: https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
 * Refactor with NamedTuple
 * Check game_data hasn't been tampered with between turns
 * Add objects to block rocket and projectiles

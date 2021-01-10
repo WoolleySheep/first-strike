@@ -1,9 +1,10 @@
 import math
 
 from game_data import ProjectileHistory
+from game_helpers import is_within_bounds, has_sufficient_time_elapsed_since_last_shot, does_projectile_impact, is_game_time_exceeded
 from game_setup import game_data
 from generate_board import generate_board
-from helpers import normalise_angle, cart2pol, pol2cart, calc_magnitude
+from math_helpers import normalise_angle, cart2pol, pol2cart, calc_magnitude
 from rocket_controller import rocket_controller
 from turret_controller import turret_controller
 
@@ -131,17 +132,19 @@ def advance_projectiles(game_data):
 
 
 
-def advance_game_data(rocket_inputs, turret_inputs):
+def advance_game_data():
 
     # Unpack inputs
-    (
-        main_engine_force,
-        left_front_thruster_force,
-        left_rear_thruster_force,
-        right_front_thruster_force,
-        right_rear_thruster_force,
-    ) = rocket_inputs
-    rotation_speed, fire = turret_inputs
+    main_engine_force = game_data.history.rocket_history.main_engine_forces[-1]
+    left_front_thruster_force = game_data.history.rocket_history.left_front_thruster_forces[-1]
+    left_rear_thruster_force = game_data.history.rocket_history.left_rear_thruster_forces[-1]
+    right_front_thruster_force = game_data.history.rocket_history.right_front_thruster_forces[-1]
+    right_rear_thruster_force = game_data.history.rocket_history.right_rear_thruster_forces[-1]
+    rotation_velocity = game_data.history.turret_history.rotation_velocities[-1]
+    
+    when_fired = game_data.history.turret_history.when_fired
+    current_timestep = game_data.history.timesteps[-1]
+    fire = when_fired and math.isclose(current_timestep, when_fired[-1])
 
     timestep = game_data.environment.timestep
 
@@ -218,10 +221,6 @@ def advance_game_data(rocket_inputs, turret_inputs):
 
     # New projectile
     if fire:
-        current_timestep = game_data.history.timesteps[-1]
-        when_fired = game_data.history.turret_history.when_fired
-        when_fired.append(current_timestep)
-
         turret_location = game_data.properties.turret_properties.location
         angle = game_data.history.turret_history.angles[-1]
         current_time = game_data.history.timesteps[-1]
@@ -232,7 +231,7 @@ def advance_game_data(rocket_inputs, turret_inputs):
         )
 
     # Turret
-    d_theta = rotation_speed * timestep
+    d_theta = rotation_velocity * timestep
     angles = game_data.history.turret_history.angles
     new_angle = normalise_angle(angles[-1] + d_theta)
     angles.append(new_angle)
@@ -250,7 +249,7 @@ def distance_between(loc1, loc2):
     return calc_magnitude(x2 - x1, y2 - y1)
 
 
-def does_rocket_impact(game_data):
+def does_rocket_impact():
 
     target_radius = game_data.properties.turret_properties.target_radius
     rocket_location = game_data.history.rocket_history.locations[-1]
@@ -259,66 +258,86 @@ def does_rocket_impact(game_data):
     return distance_between(rocket_location, turret_location) <= target_radius
 
 
-def does_projectile_impact(game_data):
-
-    target_radius = game_data.properties.rocket_properties.target_radius
-    rocket_location = game_data.history.rocket_history.locations[-1]
-    projectile_locations = [
-        projectile.locations[-1]
-        for projectile in game_data.history.projectile_histories
-    ]
-
-    return any(
-        [
-            distance_between(rocket_location, projectile_location) <= target_radius
-            for projectile_location in projectile_locations
-        ]
-    )
-
 
 def is_rocket_within_bounds(game_data):
 
     x, y = game_data.history.rocket_history.locations[-1]
-    width = game_data.environment.width
-    height = game_data.environment.height
-
-    return is_within_bounds(width, height, x, y)
+    return is_within_bounds(x, y)
 
 
-def is_within_bounds(w, h, x, y):
+def record_inputs(rocket_inputs, turret_inputs):
 
-    return -w / 2 <= x <= w / 2 and -h / 2 <= y <= h / 2
+    main_engine_force, lf_thruster_force, lr_thruster_force, rf_thruster_force, rr_thruster_force = rocket_inputs
+    rotation_velocity, fired = turret_inputs
+
+    rocket_history = game_data.history.rocket_history
+    rocket_history.main_engine_forces.append(main_engine_force)
+    rocket_history.left_front_thruster_forces.append(lf_thruster_force)
+    rocket_history.left_rear_thruster_forces.append(lr_thruster_force)
+    rocket_history.right_front_thruster_forces.append(rf_thruster_force)
+    rocket_history.right_rear_thruster_forces.append(rr_thruster_force)
+
+    turret_history = game_data.history.turret_history
+    turret_history.rotation_velocities.append(rotation_velocity)
+    if fired:
+        turret_history.when_fired.append(game_data.history.timesteps[-1])
+
+def validate_inputs(rocket_inputs, turret_inputs):
+       
+        rocket_inputs_invalid = (
+            len(rocket_inputs) != 5
+            or any([type(input_) is not float for input_ in rocket_inputs])
+            or not (0 <= rocket_inputs[0] <= game_data.properties.rocket_properties.max_main_engine_force)
+            or any([not (0 <= input_ <= game_data.properties.rocket_properties.max_thruster_force) for input_ in rocket_inputs[1:]])
+        )
+        
+        max_rotation_speed = game_data.properties.turret_properties.max_rotation_speed
+        turret_inputs_invalid = (
+            len(turret_inputs) != 2
+            or type(turret_inputs[0]) is not float
+            or not (-max_rotation_speed <= turret_inputs[0] <= max_rotation_speed)
+            or type(turret_inputs[1]) is not bool
+            or (turret_inputs[1] and not has_sufficient_time_elapsed_since_last_shot())
+        )
+
+        return rocket_inputs_invalid, turret_inputs_invalid
+
+def determine_winner():
+
+    rocket_win = does_rocket_impact()
+    turret_win = does_projectile_impact() or not is_rocket_within_bounds(game_data)
+
+    return rocket_win, turret_win
+
+def get_inputs():
+
+    rocket_controller_failed = False
+    turret_controller_failed = False
+    rocket_inputs = None
+    turret_inputs = None
+    rocket_error = None
+    turret_error = None
+
+    try:
+        rocket_inputs = rocket_controller()
+    except Exception as error:
+        rocket_error = error
+        rocket_controller_failed = True
+
+    try:
+        turret_inputs = turret_controller()
+    except Exception as error:
+        turret_error = error
+        turret_controller_failed = True
+    
+    return rocket_controller_failed, rocket_inputs, rocket_error, turret_controller_failed, turret_inputs, turret_error
 
 
-def sufficient_time_elapsed_between_shots(game_data):
-
-    when_fired = game_data.history.turret_history.when_fired
-
-    if not when_fired:
-        return True
-
-    current_time = game_data.history.timesteps[-1]
-    firing_interval = game_data.properties.turret_properties.firing_interval
-
-    return current_time - when_fired[-1] >= firing_interval
 
 
 def play_first_strike():
     while True:
-        rocket_controller_failed = False
-        turret_controller_failed = False
-        rocket_error = None
-        turret_error = None
-        try:
-            rocket_inputs = rocket_controller()
-        except Exception as error:
-            rocket_error = error
-            rocket_controller_failed = True
-        try:
-            turret_inputs = turret_controller()
-        except Exception as error:
-            turret_error = error
-            turret_controller_failed = True
+        rocket_controller_failed, rocket_inputs, rocket_error, turret_controller_failed, turret_inputs, turret_error = get_inputs()
 
         # Check if either controller failed
         if rocket_controller_failed and turret_controller_failed:
@@ -335,20 +354,7 @@ def play_first_strike():
             print(f"Turret error: {turret_error}")
             return ROCKET_WIN
 
-        # Check if either controller returned invalid inputs
-        rocket_inputs_invalid = (
-            len(rocket_inputs) != 5
-            or any([type(input_) is not float for input_ in rocket_inputs])
-            or not (0 <= rocket_inputs[0] <= game_data.properties.rocket_properties.main_engine_force)
-            or not all([0 <= input_ <= game_data.properties.rocket_properties.thruster_force for input_ in rocket_inputs[1:]])
-        )
-        turret_inputs_invalid = (
-            len(turret_inputs) != 2
-            or type(turret_inputs[0]) is not float
-            or not (-game_data.properties.turret_properties.max_rotation_speed <= turret_inputs[0] <= game_data.properties.turret_properties.max_rotation_speed)
-            or type(turret_inputs[1]) is not bool
-            or (turret_inputs[1] and not sufficient_time_elapsed_between_shots(game_data))
-        )
+        rocket_inputs_invalid, turret_inputs_invalid = validate_inputs(rocket_inputs, turret_inputs)
 
         if rocket_inputs_invalid and turret_inputs_invalid:
             print("Both sets of inputs are invalid")
@@ -360,20 +366,15 @@ def play_first_strike():
             print("Turret inputs invalid")
             return ROCKET_WIN
 
-        advance_game_data(rocket_inputs, turret_inputs)
+        record_inputs(rocket_inputs, turret_inputs)
+
+        advance_game_data()
 
         generate_board(rocket_inputs)
 
-        rocket_win = does_rocket_impact(game_data)
-        turret_win = does_projectile_impact(game_data) or not is_rocket_within_bounds(
-            game_data
-        )
-        playtime_exceeded = (
-            game_data.history.timesteps[-1]
-            > game_data.environment.max_playtime - game_data.environment.timestep
-        )
+        rocket_win, turret_win = determine_winner()
 
-        if (rocket_win and turret_win) or playtime_exceeded:
+        if (rocket_win and turret_win) or is_game_time_exceeded():
             return DRAW
         if rocket_win:
             return ROCKET_WIN

@@ -1,7 +1,7 @@
 import math
 import matplotlib.pyplot as plt
 
-from helpers import pol2cart, normalise_angle
+from math_helpers import pol2cart, normalise_angle
 
 # Remove this
 from game_setup import game_data
@@ -92,7 +92,7 @@ def generate_board(rocket_inputs):
 def plot_propulsion_system(force, projection_location, direction_angle):
 
     max_length = 10
-    max_main_engine_force = game_data.properties.rocket_properties.main_engine_force
+    max_main_engine_force = game_data.properties.rocket_properties.max_main_engine_force
 
     thrust_ratio = force / max_main_engine_force
     edge_length = max_length * thrust_ratio

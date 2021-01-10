@@ -1,15 +1,21 @@
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import List
 
-Location = Tuple[float, float]
 
+@dataclass
+class Coordinate:
+    x: float
+    y: float
+
+    def __add__(self, other):
+        return self.x + other.x, self.y + other.y
 
 @dataclass
 class Environment:
     width: float
     height: float
     timestep: float
-    max_playtime: float
+    max_game_time: float
 
 
 @dataclass
@@ -17,8 +23,8 @@ class RocketProperties:
     mass: float
     target_radius: float
     length: float
-    main_engine_force: float
-    thruster_force: float
+    max_main_engine_force: float
+    max_thruster_force: float
 
     @property
     def moment_of_inertia(self) -> float:
@@ -28,10 +34,10 @@ class RocketProperties:
 @dataclass
 class TurretProperties:
     target_radius: float
-    location: Location
+    location: Coordinate
     max_rotation_speed: float
     projectile_speed: float
-    firing_interval: float
+    min_firing_interval: float
 
 
 @dataclass
@@ -42,26 +48,28 @@ class Properties:
 
 @dataclass
 class RocketHistory:
-    locations: List[Location]
+    locations: List[Coordinate]
     angles: List[float]
-    main_engine: List[float] = field(default_factory=lambda: [0.0])
-    left_front_thruster: List[float] = field(default_factory=lambda: [0.0])
-    left_rear_thruster: List[float] = field(default_factory=lambda: [0.0])
-    right_front_thruster: List[float] = field(default_factory=lambda: [0.0])
-    right_rear_thruster: List[float] = field(default_factory=lambda: [0.0])
+    main_engine_forces: List[float] = field(default_factory=list)
+    left_front_thruster_forces: List[float] = field(default_factory=list)
+    left_rear_thruster_forces: List[float] = field(default_factory=list)
+    right_front_thruster_forces: List[float] = field(default_factory=list)
+    right_rear_thruster_forces: List[float] = field(default_factory=list)
 
 
 @dataclass
 class TurretHistory:
     angles: List[float]
+    rotation_velocities: List[float] = field(default_factory=list)
     when_fired: List[float] = field(default_factory=list)
 
 
 @dataclass
 class ProjectileHistory:
-    locations: List[Location]
+    locations: List[Coordinate]
     angle: float
     launch_time: float
+    on_board: bool
 
 
 @dataclass
