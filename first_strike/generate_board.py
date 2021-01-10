@@ -1,15 +1,19 @@
 import math
 import matplotlib.pyplot as plt
 
-from game_data import Coordinate, PolarCoordinate
-from math_helpers import pol2cart, normalise_angle
+from game_data import PolarCoordinate
+from math_helpers import normalise_angle
 
 # Remove this
 from game_setup import game_data
 
 BARREL_LENGTH = 5.0
-THRUSTER_BRIDGE_WIDTH = 2.0
+ENGINE_BRIDGE_WIDTH = 2.0
 PROPULSION_VISUAL_LENGTH = 10.0
+PROPULSION_VISUAL_ANGLE = math.pi / 6
+
+ENGINES = ("main", "left-front", "left-rear", "right-front", "right-rear")
+
 
 def plot_turret():
 
@@ -17,7 +21,9 @@ def plot_turret():
     plt.scatter(turret_location.x, turret_location.y, c="b")
 
     turret_angle = game_data.history.turret_history.angles[-1]
-    relative_barrel_tip_location = PolarCoordinate(BARREL_LENGTH, turret_angle).pol2cart()
+    relative_barrel_tip_location = PolarCoordinate(
+        BARREL_LENGTH, turret_angle
+    ).pol2cart()
 
     barrel_tip_location = turret_location + relative_barrel_tip_location
 
@@ -26,6 +32,7 @@ def plot_turret():
         [turret_location.y, barrel_tip_location.y],
         c="b",
     )
+
 
 def get_rocket_ends():
 
@@ -42,6 +49,21 @@ def get_rocket_ends():
     return rocket_front_location, rocket_rear_location
 
 
+def get_engine_bridge_ends():
+
+    _, rocket_rear_location = get_rocket_ends()
+
+    rocket_angle = game_data.history.rocket_history.angles[-1]
+
+    perpendicular_angle = normalise_angle(rocket_angle + math.pi / 2)
+    relative_engine_end = PolarCoordinate(
+        ENGINE_BRIDGE_WIDTH / 2, perpendicular_angle
+    ).pol2cart()
+
+    engine_bridge_left_location = rocket_rear_location + relative_engine_end
+    engine_bridge_right_location = rocket_rear_location - relative_engine_end
+
+    return engine_bridge_left_location, engine_bridge_right_location
 
 
 def plot_rocket_body():
@@ -49,68 +71,89 @@ def plot_rocket_body():
     rocket_front_location, rocket_rear_location = get_rocket_ends()
 
     plt.plot(
-        [rocket_front_location.x, rocket_rear_location.x,
-        [rocket_front_location.y, rocket_rear_location.y,
+        [rocket_front_location.x, rocket_rear_location.x],
+        [rocket_front_location.y, rocket_rear_location.y],
         c="g",
     )
 
-    return rocket_rear_location
 
+def plot_engine_bridge():
 
-def plot_thruster_bridge():
+    engine_bridge_left_location, engine_bridge_right_location = get_engine_bridge_ends()
 
-    _, rocket_rear_location = get_rocket_ends()
-
-    rocket_angle = game_data.history.rocket_history.angles[-1]
-
-    perpendicular_angle = normalise_angle(rocket_angle + math.pi / 2)
-    relative_thruster_end = PolarCoordinate(THRUSTER_BRIDGE_WIDTH / 2, perpendicular_angle).pol2cart()
-
-    thruster_left_location = rocket_rear_location + relative_thruster_end
-    thruster_right_location = rocket_rear_location - relative_thruster_end
-    
     plt.plot(
-        [thruster_left_location.x, thruster_right_location.x],
-        [thruster_left_location.x, thruster_right_location.x],
+        [engine_bridge_left_location.x, engine_bridge_right_location.x],
+        [engine_bridge_left_location.y, engine_bridge_right_location.y],
         c="g",
     )
+
 
 def plot_propulsion_system():
 
-    rocket_front_location, rocket_rear_location = get_rocket_ends()
+    for engine in ENGINES:
+        plot_engine_strength(engine)
+
+
+def plot_engine_strength(engine: str):
 
     rocket_angle = game_data.history.rocket_history.angles[-1]
-    perpendicular_angle = normalise_angle(rocket_angle + math.pi / 2)
+    max_main_engine_force = game_data.properties.rocket_properties.max_main_engine_force
 
-    # Plot main engine
-    
-    plot_thruster_strength(
-        rocket_inputs[0], rocket_rear_location, normalise_angle(rocket_angle - math.pi)
-    )
+    if engine == "main":
+        force = game_data.history.rocket_history.main_engine_forces[-1]
+        _, projection_location = get_rocket_ends()
+        angle = normalise_angle(rocket_angle + math.pi)
+    elif engine == "left-front":
+        force = game_data.history.rocket_history.left_front_thruster_forces[-1]
+        projection_location, _ = get_rocket_ends()
+        angle = normalise_angle(rocket_angle + math.pi / 2)
+    elif engine == "left-rear":
+        force = game_data.history.rocket_history.left_rear_thruster_forces[-1]
+        projection_location, _ = get_engine_bridge_ends()
+        angle = normalise_angle(rocket_angle + math.pi / 2)
+    elif engine == "right-front":
+        force = game_data.history.rocket_history.right_front_thruster_forces[-1]
+        projection_location, _ = get_rocket_ends()
+        angle = normalise_angle(rocket_angle - math.pi / 2)
+    elif engine == "right-rear":
+        force = game_data.history.rocket_history.right_rear_thruster_forces[-1]
+        _, projection_location = get_engine_bridge_ends()
+        angle = normalise_angle(rocket_angle - math.pi / 2)
+    else:
+        raise ValueError(f"Engine must be in {ENGINES}")
 
-    # Plot thrusters
-    plot_thruster_strength(rocket_inputs[1], rocket_front_location, perpendicular_angle)
-    plot_propulsion_system(
-        rocket_inputs[2], thruster_left_location, perpendicular_angle
+    thrust_ratio = force / max_main_engine_force
+    edge_length = PROPULSION_VISUAL_LENGTH * thrust_ratio
+
+    left_angle = normalise_angle(angle + PROPULSION_VISUAL_ANGLE)
+    relative_thrust_left_location = PolarCoordinate(edge_length, left_angle).pol2cart()
+    thrust_left_location = projection_location + relative_thrust_left_location
+
+    right_angle = normalise_angle(angle - PROPULSION_VISUAL_ANGLE)
+    relative_thrust_right_location = PolarCoordinate(
+        edge_length, right_angle
+    ).pol2cart()
+    thrust_right_location = projection_location + relative_thrust_right_location
+
+    patch = plt.Polygon(
+        [
+            list(projection_location),
+            list(thrust_left_location),
+            list(thrust_right_location),
+        ],
+        color="r",
     )
-    plot_thruster_strength(
-        rocket_inputs[3],
-        rocket_front_location,
-        normalise_angle(perpendicular_angle - math.pi),
-    )
-    plot_thruster_strength(
-        rocket_inputs[4],
-        thruster_right_location,
-        normalise_angle(perpendicular_angle - math.pi),
-    )
+    plt.gca().add_patch(patch)
+
 
 def plot_rocket():
 
     plot_rocket_body()
 
-    plot_thruster_bridge()
+    plot_engine_bridge()
 
     plot_propulsion_system()
+
 
 def plot_projectiles():
 
@@ -121,6 +164,7 @@ def plot_projectiles():
 
         location = projectile.locations[-1]
         plt.scatter(location.x, location.y, c="k")
+
 
 def set_board_dimensions():
 
@@ -136,40 +180,12 @@ def set_board_dimensions():
 
 def generate_board():
 
+    set_board_dimensions()
+
     plot_rocket()
 
     plot_turret()
 
     plot_projectiles()
 
-    set_board_dimensions()
-
     plt.show()
-
-
-def plot_thruster_strength(force, projection_location, direction_angle):
-
-    max_main_engine_force = game_data.properties.rocket_properties.max_main_engine_force
-
-    thrust_ratio = force / max_main_engine_force
-    edge_length = PROPULSION_VISUAL_LENGTH * thrust_ratio
-
-    left_angle = normalise_angle(direction_angle + math.pi / 6)
-    rel_left_location = pol2cart(edge_length, left_angle)
-    left_location = (
-        projection_location[0] + rel_left_location[0],
-        projection_location[1] + rel_left_location[1],
-    )
-
-    right_angle = normalise_angle(direction_angle - math.pi / 6)
-    rel_right_location = pol2cart(edge_length, right_angle)
-    right_location = (
-        projection_location[0] + rel_right_location[0],
-        projection_location[1] + rel_right_location[1],
-    )
-
-    patch = plt.Polygon(
-        [list(projection_location), list(left_location), list(right_location)],
-        color="r",
-    )
-    plt.gca().add_patch(patch)

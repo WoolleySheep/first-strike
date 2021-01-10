@@ -13,7 +13,7 @@ def rocket_controller():
 
     # If facing away from the turret, spin the rocket using the thrusters
     # Use PID controller
-    p_c = 0.5
+    p_c = 1.0
     d_c = -0.7
     i_c = 0.01
 
@@ -40,11 +40,9 @@ def rocket_controller():
     else:
         lf, lr, rf, rr = thruster_force, 0.0, 0.0, thruster_force
 
-    # If turret is within cone of vision, turn on the main drive
-    if abs(angular_disp) <= math.pi / 6:  # Cone of vision is hardcoded
-        me = max_main_engine_force
-    else:
-        me = 0.0
+    # If turret is in front of the rocket, turn on the main engine
+    ratio = 1 - abs(angular_disp) / (math.pi / 2)
+    me = ratio * max_main_engine_force if ratio > 0 else 0.0
 
     return me, lf, lr, rf, rr
 

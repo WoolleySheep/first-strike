@@ -23,10 +23,10 @@ def turret_controller():
     if not when_fired:
         return rs, True
 
-    firing_interval = game_data.properties.turret_properties.firing_interval
+    min_firing_interval = game_data.properties.turret_properties.min_firing_interval
     current_time = game_data.history.timesteps[-1]
     last_fired = when_fired[-1]
-    fire = current_time - last_fired >= firing_interval
+    fire = current_time - last_fired >= min_firing_interval
 
     return rs, fire
 

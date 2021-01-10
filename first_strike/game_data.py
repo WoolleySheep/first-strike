@@ -8,17 +8,45 @@ class Coordinate:
     x: float
     y: float
 
-    def __add__(self, other_coord):
-        return Coordinate(self.x + other_coord.x, self.y + other_coord.y)
+    def __add__(self, other):
+        if type(other) is Coordinate:
+            return Coordinate(self.x + other.x, self.y + other.y)
+        return Coordinate(self.x + other, self.y + other)
 
-    def __sub__(self, other_coord):
-        return Coordinate(self.x + other_coord.x, self.y + other_coord.y)
+    def __sub__(self, other):
+        if type(other) is Coordinate:
+            return Coordinate(self.x - other.x, self.y - other.y)
+        return Coordinate(self.x - other, self.y - other)
 
-    def __mul__(self, constant):
-        return Coordinate(constant * self.x, constant * self.y)
+    def __mul__(self, other):
+        if type(other) is Coordinate:
+            return Coordinate(self.x * other.x, self.y * other.y)
+        return Coordinate(other * self.x, other * self.y)
 
-    def __div__(self, constant):
-        return Coordinate(self.x / constant, self.y / constant)
+    def __truediv__(self, other):
+        if type(other) is Coordinate:
+            return Coordinate(self.x / other.x, self.y / other.y)
+        return Coordinate(self.x / other, self.y / other)
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __rsub__(self, other):
+        return self.__sub__(other)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __dtruediv__(self, other):
+        return self.__truediv__(other)
+
+    def __getitem__(self, index):
+        if index == 0:
+            return self.x
+        elif index == 1:
+            return self.y
+        else:
+            raise IndexError("Only two elements in class")
 
     @property
     def magnitude(self):
@@ -35,9 +63,6 @@ class Coordinate:
         return PolarCoordinate(r, theta)
 
 
-    
-
-
 @dataclass
 class PolarCoordinate:
     r: float
@@ -48,7 +73,6 @@ class PolarCoordinate:
         y = self.r * math.sin(self.theta)
 
         return Coordinate(x, y)
-
 
 
 @dataclass

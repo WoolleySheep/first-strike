@@ -2,10 +2,10 @@
 ## Programming game between a rocket and a turret
 
 ### TODO
-* Add Coordinate class
-* Seperate mechanics/physics
 * Implement animation: https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
-* Refactor with NamedTuple
+* Add game timer to board
+* Turret controller: Shoot if the path of the rocket and the projectile are estimated to intersect
+* Rocket controller: Use all engines to "slide" towards the turret, as well as rotating
 * Check game_data hasn't been tampered with between turns
 * Add objects to block rocket and projectiles
 ### Description
