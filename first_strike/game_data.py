@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import math
 from typing import List
 
 
@@ -7,8 +8,47 @@ class Coordinate:
     x: float
     y: float
 
-    def __add__(self, other):
-        return self.x + other.x, self.y + other.y
+    def __add__(self, other_coord):
+        return Coordinate(self.x + other_coord.x, self.y + other_coord.y)
+
+    def __sub__(self, other_coord):
+        return Coordinate(self.x + other_coord.x, self.y + other_coord.y)
+
+    def __mul__(self, constant):
+        return Coordinate(constant * self.x, constant * self.y)
+
+    def __div__(self, constant):
+        return Coordinate(self.x / constant, self.y / constant)
+
+    @property
+    def magnitude(self):
+        return math.sqrt(self.x ** 2 + self.y ** 2)
+
+    @property
+    def angle(self):
+        return math.atan2(self.y, self.x)
+
+    def cart2pol(self):
+        r = self.magnitude()
+        theta = self.angle()
+
+        return PolarCoordinate(r, theta)
+
+
+    
+
+
+@dataclass
+class PolarCoordinate:
+    r: float
+    theta: float
+
+    def pol2cart(self):
+        x = self.r * math.cos(self.theta)
+        y = self.r * math.sin(self.theta)
+
+        return Coordinate(x, y)
+
 
 
 @dataclass
@@ -68,7 +108,7 @@ class TurretHistory:
 @dataclass
 class ProjectileHistory:
     locations: List[Coordinate]
-    angle: float
+    firing_angle: float
     launch_time: float
     on_board: bool
 

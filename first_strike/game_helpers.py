@@ -1,12 +1,14 @@
 from game_setup import game_data
 
+from game_data import Coordinate
 
-def is_within_bounds(x, y):
+
+def is_within_bounds(location: Coordinate) -> bool:
 
     w = game_data.environment.width
     h = game_data.environment.height
 
-    return -w / 2 <= x <= w / 2 and -h / 2 <= y <= h / 2
+    return -w / 2 <= location.x <= w / 2 and -h / 2 <= location.y <= h / 2
 
 
 def has_sufficient_time_elapsed_since_last_shot():
@@ -22,12 +24,15 @@ def has_sufficient_time_elapsed_since_last_shot():
     return current_time - when_fired[-1] >= min_firing_interval
 
 
-def does_projectile_impact():
+def does_projectile_impact_rocket():
 
     target_radius = game_data.properties.rocket_properties.target_radius
     rocket_location = game_data.history.rocket_history.locations[-1]
 
     for projectile_history in game_data.history.projectile_histories:
+        if not projectile_history.on_board:
+            continue
+
         projectile_location = projectile_history.locations[-1]
         if distance_between(rocket_location, projectile_location) <= target_radius:
             return True
