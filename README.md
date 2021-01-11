@@ -2,8 +2,8 @@
 ## Programming game between a rocket and a turret
 
 ### TODO
+* Rocket controller: Use all engines to "slide" towards the turret, as well as rotating, account for current movement
 * Turret controller: Shoot if the path of the rocket and the projectile are estimated to intersect
-* Rocket controller: Use all engines to "slide" towards the turret, as well as rotating
 * Refactor into a clearer format (seperate physics and helpers)
 * Check game_data hasn't been tampered with between turns
 * Add objects to block rocket and projectiles

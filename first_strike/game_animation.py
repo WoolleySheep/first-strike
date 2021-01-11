@@ -3,7 +3,12 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
 from game_data import PolarCoordinate
-from game_helpers import does_projectile_impact_rocket, does_rocket_impact_turret, is_game_time_exceeded, has_sufficient_time_elapsed_since_last_shot
+from game_helpers import (
+    does_projectile_impact_rocket,
+    does_rocket_impact_turret,
+    is_game_time_exceeded,
+    has_sufficient_time_elapsed_since_last_shot,
+)
 from game_setup import game_data
 from generate_board import get_rocket_ends
 from math_helpers import normalise_angle
@@ -18,6 +23,7 @@ ROCKET_LENGTH_MAX_ENGINE_THRUST_RATIO = 1.0
 THRUST_CONE_ANGLE = math.pi / 6
 DEFAULT_TITLE = "Game in progress"
 ENGINES = ("main", "left-front", "left-rear", "right-front", "right-rear")
+
 
 def record_inputs(rocket_inputs, turret_inputs):
 
@@ -78,25 +84,24 @@ def get_engine_bridge_ends():
     return engine_bridge_left_location, engine_bridge_right_location
 
 
-
-
-
 class AnimateGame:
     def __init__(self):
         self.title = DEFAULT_TITLE
         self.fig, self.ax = plt.subplots()
         self.animation = animation.FuncAnimation(
-            self.fig, self.update, init_func=self.initialise, interval=int(game_data.environment.timestep * 1000)
+            self.fig,
+            self.update,
+            init_func=self.initialise,
+            interval=int(game_data.environment.timestep * 1000),
         )
 
     @property
     def alpha(self):
         return 0.3 if self.result else 1.0
 
-    @ property
+    @property
     def result(self):
         return self.title != DEFAULT_TITLE
-        
 
     def initialise(self):
 
@@ -129,20 +134,17 @@ class AnimateGame:
         ]
 
     def set_board_boundaries(self):
-        
+
         width = game_data.environment.width
         height = game_data.environment.height
 
         self.ax.axis([-width / 2, width / 2, -height / 2, height / 2])
         plt.gca().set_aspect("equal", adjustable="box")
 
-
-
-
     def update(self, i):
-        
+
         if not self.result:
-            rocket_inputs, turret_inputs = self.get_inputs()        
+            rocket_inputs, turret_inputs = self.get_inputs()
         if not self.result:
             record_inputs(rocket_inputs, turret_inputs)
             advance_game_data()
@@ -168,7 +170,7 @@ class AnimateGame:
             p.set_alpha(self.alpha)
 
     def update_title(self):
-        
+
         current_time = game_data.history.timesteps[-1]
         self.ax.set_title(self.title + f" ({current_time:.1f}s)")
 
@@ -176,7 +178,9 @@ class AnimateGame:
 
         self.plot_rocket_body()
         self.plot_engine_bridge()
-        if game_data.history.rocket_history.main_engine_forces: # Is there something to plot
+        if (
+            game_data.history.rocket_history.main_engine_forces
+        ):  # Is there something to plot
             self.plot_main_engine_thrust()
             self.plot_left_front_thrust()
             self.plot_left_rear_thrust()
@@ -366,8 +370,11 @@ class AnimateGame:
             turret_controller_failed = True
 
         self.check_controller_failure(
-        rocket_controller_failed, rocket_error, turret_controller_failed, turret_error
-    )
+            rocket_controller_failed,
+            rocket_error,
+            turret_controller_failed,
+            turret_error,
+        )
 
         return (
             rocket_inputs,
@@ -375,7 +382,11 @@ class AnimateGame:
         )
 
     def check_controller_failure(
-        self, rocket_controller_failed, rocket_error, turret_controller_failed, turret_error
+        self,
+        rocket_controller_failed,
+        rocket_error,
+        turret_controller_failed,
+        turret_error,
     ):
 
         if rocket_controller_failed and turret_controller_failed:
@@ -388,7 +399,6 @@ class AnimateGame:
         if self.result:
             print(f"Rocket error: {rocket_error}")
             print(f"Turret error: {turret_error}")
-
 
     def validate_inputs(self, rocket_inputs, turret_inputs):
 
@@ -428,7 +438,6 @@ class AnimateGame:
         elif turret_inputs_invalid:
             print("ROCKET WIN: Turret inputs invalid")
 
-
     def determine_winner(self):
 
         rocket_hit_turret = does_rocket_impact_turret()
@@ -444,7 +453,6 @@ class AnimateGame:
             self.title = "TURRET WIN: A projectile has hit the rocket"
         elif is_game_time_exceeded():
             self.title = "DRAW: Game time exceeded"
-
 
 
 game = AnimateGame()
