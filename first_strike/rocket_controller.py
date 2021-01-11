@@ -1,12 +1,22 @@
 import math
 
+from game_data import PolarCoordinate
+from game_setup import game_data
 from math_helpers import normalise_angle
 
-# Must be imported
-from game_setup import game_data
+from player_controllers.player_rocket_controller import player_rocket_controller
 
 
 def rocket_controller():
+
+    player_controller_inputs = player_rocket_controller()
+    if player_controller_inputs is not None:
+        return player_controller_inputs
+
+    return default_rocket_controller()
+
+
+def default_rocket_controller():
 
     max_thruster_force = game_data.properties.rocket_properties.max_thruster_force
     max_main_engine_force = game_data.properties.rocket_properties.max_main_engine_force

@@ -54,7 +54,7 @@ def mark_projectiles_off_board():
             projectile_history.on_board = False
 
 
-def advance_projectiles():
+def move_projectiles():
 
     timestep = game_data.environment.timestep
     projectile_speed = game_data.properties.turret_properties.projectile_speed
@@ -94,7 +94,7 @@ def advance_game_data():
 
     move_the_rocket()
 
-    advance_projectiles()
+    move_projectiles()
     mark_projectiles_off_board()
 
     if should_fire_a_projectile():
@@ -109,30 +109,6 @@ def is_rocket_within_bounds():
 
     location = game_data.history.rocket_history.locations[-1]
     return is_within_bounds(location)
-
-
-def record_inputs(rocket_inputs, turret_inputs):
-
-    (
-        main_engine_force,
-        lf_thruster_force,
-        lr_thruster_force,
-        rf_thruster_force,
-        rr_thruster_force,
-    ) = rocket_inputs
-    rotation_velocity, fired = turret_inputs
-
-    rocket_history = game_data.history.rocket_history
-    rocket_history.main_engine_forces.append(main_engine_force)
-    rocket_history.left_front_thruster_forces.append(lf_thruster_force)
-    rocket_history.left_rear_thruster_forces.append(lr_thruster_force)
-    rocket_history.right_front_thruster_forces.append(rf_thruster_force)
-    rocket_history.right_rear_thruster_forces.append(rr_thruster_force)
-
-    turret_history = game_data.history.turret_history
-    turret_history.rotation_velocities.append(rotation_velocity)
-    if fired:
-        turret_history.when_fired.append(game_data.history.timesteps[-1])
 
 
 def validate_inputs(rocket_inputs, turret_inputs):

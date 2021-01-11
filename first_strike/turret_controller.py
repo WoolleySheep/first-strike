@@ -2,9 +2,19 @@ import math
 
 from game_setup import game_data
 from math_helpers import normalise_angle
+from player_controllers.player_rocket_controller import player_rocket_controller
 
 
 def turret_controller():
+
+    player_controller_inputs = player_rocket_controller()
+    if player_controller_inputs is not None:
+        return player_controller_inputs
+
+    return default_turret_controller()
+
+
+def default_turret_controller():
 
     rotation_speed = game_data.properties.turret_properties.max_rotation_speed
 

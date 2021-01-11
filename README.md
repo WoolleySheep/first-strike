@@ -2,13 +2,15 @@
 ## Programming game between a rocket and a turret
 
 ### TODO
-* Implement animation: https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
 * Turret controller: Shoot if the path of the rocket and the projectile are estimated to intersect
 * Rocket controller: Use all engines to "slide" towards the turret, as well as rotating
+* Refactor into a clearer format (seperate physics and helpers)
 * Check game_data hasn't been tampered with between turns
 * Add objects to block rocket and projectiles
+* Test for controller execution time
 * Add turret reload graph (increase red to full, then green when ready)
 * Add rocket g forces
+* Fix "projectiles not disappearing when off board" problem 
 ### Description
 The aim of the game is simple:
 * The rocket has to crash into the turret
