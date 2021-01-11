@@ -3,11 +3,12 @@
 
 ### TODO
 * Implement animation: https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
-* Add game timer to board
 * Turret controller: Shoot if the path of the rocket and the projectile are estimated to intersect
 * Rocket controller: Use all engines to "slide" towards the turret, as well as rotating
 * Check game_data hasn't been tampered with between turns
 * Add objects to block rocket and projectiles
+* Add turret reload graph (increase red to full, then green when ready)
+* Add rocket g forces
 ### Description
 The aim of the game is simple:
 * The rocket has to crash into the turret

@@ -82,6 +82,10 @@ class Environment:
     timestep: float
     max_game_time: float
 
+    @property
+    def board_area(self) -> float:
+        return self.width * self.height
+
 
 @dataclass
 class RocketProperties:

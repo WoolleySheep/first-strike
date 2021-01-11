@@ -302,6 +302,3 @@ def play_first_strike():
             break
 
     display_result(result)
-
-
-play_first_strike()

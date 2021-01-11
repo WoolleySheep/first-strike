@@ -1,6 +1,6 @@
 import math
 
-from game_data import Coordinate
+from game_data import Coordinate, PolarCoordinate
 from game_setup import game_data
 from math_helpers import normalise_angle, distance_between_coordinates
 
