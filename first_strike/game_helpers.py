@@ -93,3 +93,12 @@ def get_thruster_angle(thruster):
         return normalise_angle(angle + math.pi / 2)
     else:
         raise ValueError(f"thruster must be one of {ENGINES[1:]}")
+
+def calc_angle_turret2rocket():
+
+    turret_x, turret_y = game_data.properties.turret_properties.location
+    turret_angle = game_data.history.turret_history.angles[-1]
+    rocket_x, rocket_y = game_data.history.rocket_history.locations[-1]
+
+    angle = math.atan2(rocket_y - turret_y, rocket_x - turret_x)
+    return normalise_angle(angle - turret_angle)
