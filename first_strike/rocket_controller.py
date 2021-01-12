@@ -18,8 +18,8 @@ def rocket_controller():
 
 def default_rocket_controller():
 
-    max_thruster_force = game_data.properties.rocket_properties.max_thruster_force
     max_main_engine_force = game_data.properties.rocket_properties.max_main_engine_force
+    max_thruster_force = game_data.properties.rocket_properties.max_thruster_force
 
     # If facing away from the turret, spin the rocket using the thrusters
     # Use PID controller
@@ -51,6 +51,7 @@ def default_rocket_controller():
         lf, lr, rf, rr = thruster_force, 0.0, 0.0, thruster_force
 
     # If turret is in front of the rocket, turn on the main engine
+    # Increase engine power the better aligned the rocket is
     ratio = 1 - abs(angular_disp) / (math.pi / 2)
     me = ratio * max_main_engine_force if ratio > 0 else 0.0
 
