@@ -17,7 +17,7 @@ def turret_controller():
 
 def default_turret_controller():
 
-    if not has_min_firing_interval_elapsed():
+    if not can_turret_fire():
         return calc_rotation_velocity(), False
     
     if will_projectile_hit_rocket():
@@ -86,7 +86,7 @@ def calc_intercept_angle():
     return theta
 
 
-def has_min_firing_interval_elapsed():
+def can_turret_fire():
 
     when_fired = game_data.history.turret_history.when_fired
 
