@@ -44,27 +44,32 @@ def calc_rotation_velocity():
 
 def calc_intercept_angle():
     """https://math.stackexchange.com/questions/213545/solving-trigonometric-equations-of-the-form-a-sin-x-b-cos-x-c"""
-    # TODO: Mistargetting when rocket starts above turret (initial rocket height > 0)
-        # TODO: Still mistargetting when rocket start (-150.0, 150.0, angle=0.0, f_e = 50.0, f_t = 20.0)
-        # TODO: Not rotating when rocket directly behind it (-150.0, 0.0, angle=0.0, f_e = 50.0, f_t = 20.0)
-    # TODO: Account for edge case where rocket is flying directly towards/away from
+    # TODO: Account for edge case where rocket is flying directly towards/away from turret
+        # Actually, logically there will still only be one unique intercept point
+        # The only time the lines would be truly the same is if the rocket was:
+            # - At the same coordinate as the turret
+            # - Travelling at the same velocity as the projectile
+    # TODO: Account for case where rocket is directly behind the turret
+    # TODO: turret_location.x - rocket_location.x == 0 breaks k, which breaks a lot of other things
 
     projectile_speed = game_data.properties.turret_properties.projectile_speed
     turret_location = game_data.properties.turret_properties.location
-    turret_angle = game_data.history.turret_history.angles[-1]
 
     rocket_velocity = calc_rocket_velocity()
     rocket_location = game_data.history.rocket_history.locations[-1]
 
-    a = -1
-    b = (turret_location.y - rocket_location.y) / (turret_location.x - rocket_location.x)
-    c = ((b * rocket_velocity.x) - rocket_velocity.y) / projectile_speed
+    k = (turret_location.y - rocket_location.y) / (turret_location.x - rocket_location.x)
+
+    a = -projectile_speed
+    b = k * projectile_speed
+    c = k * rocket_velocity.x - rocket_velocity.y
 
     A = a / math.sqrt(a ** 2 + b ** 2)
-    beta = math.acos(A)
+    B = b / math.sqrt(a ** 2 + b ** 2)
+    beta = math.atan2(B, A)
 
     try:
-        intercept_angle = math.asin(c / math.sqrt(a ** 2 + b ** 2)) - beta
+        m = math.asin(c / math.sqrt(a ** 2 + b ** 2))
     except ValueError:  # Intercept is no longer possible due to rocket velocity
         return calc_angle2rocket()  # Track the rocket
 
@@ -75,9 +80,10 @@ def calc_intercept_angle():
 
         return t1 >= 0 and t2 >= 0 and math.isclose(t1, t2)
 
+    intercept_angle = normalise_angle(m - beta)
     if valid_angle(intercept_angle):
         return intercept_angle
-    return normalise_angle(math.pi - intercept_angle)
+    return normalise_angle(math.pi - m - beta)
 
     
 

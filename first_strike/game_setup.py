@@ -1,3 +1,5 @@
+import math
+
 from game_data import (
     Environment,
     RocketProperties,
@@ -27,8 +29,8 @@ MAX_ROTATION_SPEED = 0.5
 PROJECTILE_SPEED = 70.0
 MIN_FIRING_INTERVAL = 3.0
 
-ROCKET_START_LOCATION = Coordinate(-150, -100.0)
-ROCKET_START_ANGLE = 0.0
+ROCKET_START_LOCATION = Coordinate(0.0, 100.0)
+ROCKET_START_ANGLE = -math.pi / 2
 
 TURRET_START_ANGLE = 0.0
 
