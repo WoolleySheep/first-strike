@@ -12,6 +12,7 @@
 * Add rocket g forces
 * Fix "projectiles not disappearing when off board" problem 
 * Check game settings for validity before beginning the game
+* Exercise controllers for fitness; provide them with situations and validate responses
 ### Description
 The aim of the game is simple:
 * The rocket has to crash into the turret
