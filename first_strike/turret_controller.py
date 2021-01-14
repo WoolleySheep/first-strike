@@ -125,9 +125,11 @@ def will_projectile_hit_rocket():
     b = 2  * (x1 * x2 + y1 * y2)
     c = x2 ** 2 + y2 ** 2
 
-    t_m = - b / (2 * a)
-
-    if t_m < 0: # If the minimum occurs in the past, set min time to 0
+    try:
+        t_m = - b / (2 * a) # Find time for local minima
+        if t_m < 0: # If the minimum occurs in the past, set min time to 0
+            t_m = 0.0
+    except: # When rocket and projectile have exactly equal velocity
         t_m = 0.0
 
     smallest_distance = math.sqrt(a * t_m ** 2 + b * t_m + c)
