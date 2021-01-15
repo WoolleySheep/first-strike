@@ -10,7 +10,9 @@ class Animation:
         self.parameters = parameters
         self.history = history
         self.title = parameters.animation.default_title
-        self.fig, (self.ax, self.ax2) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [5, 1]})
+        self.fig, (self.ax, self.ax2) = plt.subplots(
+            1, 2, gridspec_kw={"width_ratios": [5, 1]}
+        )
         self.plots = Plots()
         self.animation_func = None
 
@@ -42,7 +44,7 @@ class Animation:
     def initialise(self):
 
         self.set_subplot_titles()
-        
+
         self.set_board_boundaries()
 
         self.set_charging_time()
@@ -60,7 +62,9 @@ class Animation:
 
         self.plots.projectiles = self.ax.scatter([], [], c="k")
 
-        self.plots.charging, = self.ax2.bar([0], [self.parameters.turret.min_firing_interval], color="green")
+        (self.plots.charging,) = self.ax2.bar(
+            [0], [self.parameters.turret.min_firing_interval], color="green"
+        )
 
         return self.plots.all_plots
 
@@ -74,7 +78,9 @@ class Animation:
         width = self.parameters.environment.width
         height = self.parameters.environment.height
 
-        self.ax.set(xlim=[-width / 2, width / 2], ylim=[-height / 2, height / 2], aspect=1)
+        self.ax.set(
+            xlim=[-width / 2, width / 2], ylim=[-height / 2, height / 2], aspect=1
+        )
 
     def set_charging_time(self):
 
@@ -90,8 +96,13 @@ class Animation:
         return self.ax.scatter([location.x], [location.y], c="b")
 
     def update(self, i):
-        
-        for _ in range(int(self.parameters.animation.frame_interval_ms / (1000 * self.parameters.time.timestep))):
+
+        for _ in range(
+            int(
+                self.parameters.animation.frame_interval_ms
+                / (1000 * self.parameters.time.timestep)
+            )
+        ):
             if not self.result:
                 self.process_controller_inputs()
             if not self.result:

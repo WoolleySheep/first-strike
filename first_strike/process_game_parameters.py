@@ -60,7 +60,6 @@ def _is_within_bounds(location, w, h):
     return (-w / 2 <= location[0] <= w / 2) and (-h / 2 <= location[1] <= h / 2)
 
 
-
 def _validate_game_parameters(game_params):
 
     # animation
@@ -110,9 +109,18 @@ def _validate_game_parameters(game_params):
     assert (
         time["max_game_time"] > time["timestep"]
     )  # Game cannot be shorter than 1 timestep
-    assert distance_between_coordinates(Coordinate(rocket["start_location"]), Coordinate(turret["location"])) > rocket["target_radius"]
-    assert distance_between_coordinates(Coordinate(rocket["start_location"]), Coordinate(turret["location"])) > turret["target_radius"]
-
+    assert (
+        distance_between_coordinates(
+            Coordinate(rocket["start_location"]), Coordinate(turret["location"])
+        )
+        > rocket["target_radius"]
+    )
+    assert (
+        distance_between_coordinates(
+            Coordinate(rocket["start_location"]), Coordinate(turret["location"])
+        )
+        > turret["target_radius"]
+    )
 
 
 def _store_game_parameters(self, game_params):

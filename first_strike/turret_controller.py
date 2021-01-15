@@ -75,11 +75,11 @@ def calc_intercept_angle(self):
             y_intercepts = math.isclose(turret_location.y, rocket_location.y)
 
         return (
-                not (x_equal and y_equal)
-                and x_intercepts
-                and y_intercepts
-                and ((x_equal is not y_equal) or math.isclose(xt, yt))
-            )
+            not (x_equal and y_equal)
+            and x_intercepts
+            and y_intercepts
+            and ((x_equal is not y_equal) or math.isclose(xt, yt))
+        )
 
     projectile_speed = self.parameters.turret.projectile_speed
     turret_location = self.parameters.turret.location
@@ -109,7 +109,7 @@ def calc_intercept_angle(self):
 
     except ValueError:  # Intercept is no longer possible due to rocket velocity
         return calc_angle2rocket(self)  # Track the rocket
-    
+
     intercept_angle = normalise_angle(m - beta)
     if valid_angle(intercept_angle):
         return intercept_angle
@@ -153,4 +153,6 @@ def will_projectile_hit_rocket(self):
 
 def calc_angle2rocket(self):
 
-    return math.atan2(*(list(self.history.rocket.location - self.parameters.turret.location)[::-1]))
+    return math.atan2(
+        *(list(self.history.rocket.location - self.parameters.turret.location)[::-1])
+    )
