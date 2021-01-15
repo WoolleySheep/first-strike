@@ -2,16 +2,12 @@
 ## Programming game between a rocket and a turret
 
 ### TODO
-* Turret controller: Rotate towards the angle required for a leading shot
 * Rocket controller: Use all engines to "slide" towards the turret, as well as rotating, account for current movement
 * Convert modules into proper classes
 * Check game_data hasn't been tampered with between turns
 * Add objects to block rocket and projectiles
 * Test for controller execution time
-* Add turret reload graph (increase red to full, then green when ready)
-* Add rocket g forces
 * Fix "projectiles not disappearing when off board" problem 
-* Check game settings for validity before beginning the game
 * Exercise controllers for fitness; provide them with situations and validate responses
 ### Description
 The aim of the game is simple:
