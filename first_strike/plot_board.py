@@ -10,6 +10,8 @@ def plot_board(self):
 
     update_title(self)
 
+    plot_charging(self)
+
     plot_rocket(self)
     plot_turret(self)
     plot_projectiles(self)
@@ -18,13 +20,31 @@ def plot_board(self):
 def set_alpha(self):
 
     for p in self.plots.all_plots:
-        p.set_alpha(self.alpha)
+        if p != self.plots.charging:
+            p.set_alpha(self.alpha)
+
+    self.plots.charging.set_alpha(self.alpha)
 
 
 def update_title(self):
 
     current_time = self.history.time
-    self.ax.set_title(self.title + f" ({current_time:.1f}s)")
+    self.fig.suptitle(self.title + f" ({current_time:.1f}s)")
+
+def plot_charging(self):
+
+    current_time = self.history.time
+    last_fired = self.history.turret.last_fired
+    min_firing_interval = self.parameters.turret.min_firing_interval
+
+    charging_duration = min(current_time - last_fired, min_firing_interval) if last_fired else min_firing_interval
+
+    self.plots.charging.set_height(charging_duration)  
+
+    if math.isclose(charging_duration, min_firing_interval):
+        self.plots.charging.set_color("green")  
+    else:
+        self.plots.charging.set_color("red")
 
 
 def plot_rocket(self):

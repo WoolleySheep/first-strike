@@ -10,7 +10,7 @@ class Animation:
         self.parameters = parameters
         self.history = history
         self.title = parameters.animation.default_title
-        self.fig, self.ax = plt.subplots()
+        self.fig, (self.ax, self.ax2) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [5, 1]})
         self.plots = Plots()
         self.animation_func = None
 
@@ -41,7 +41,11 @@ class Animation:
 
     def initialise(self):
 
+        self.set_subplot_titles()
+        
         self.set_board_boundaries()
+
+        self.set_charging_time()
 
         (self.plots.rocket_body,) = self.ax.plot([], c="g")
         (self.plots.engine_bridge,) = self.ax.plot([], c="g")
@@ -56,15 +60,29 @@ class Animation:
 
         self.plots.projectiles = self.ax.scatter([], [], c="k")
 
+        self.plots.charging, = self.ax2.bar([0], [self.parameters.turret.min_firing_interval], color="green")
+
         return self.plots.all_plots
+
+    def set_subplot_titles(self):
+
+        self.ax.set_title("Game board")
+        self.ax2.set_title("Ready to fire")
 
     def set_board_boundaries(self):
 
         width = self.parameters.environment.width
         height = self.parameters.environment.height
 
-        self.ax.axis([-width / 2, width / 2, -height / 2, height / 2])
-        plt.gca().set_aspect("equal", adjustable="box")
+        self.ax.set(xlim=[-width / 2, width / 2], ylim=[-height / 2, height / 2], aspect=1)
+
+    def set_charging_time(self):
+
+        min_firing_interval = self.parameters.turret.min_firing_interval
+        self.ax2.set_ylim(0, min_firing_interval)
+
+        self.ax2.xaxis.set_visible(False)
+        self.ax2.yaxis.tick_right()
 
     def plot_turret_body(self):
 
@@ -101,6 +119,8 @@ class Plots:
 
         self.projectiles = None
 
+        self.charging = None
+
     @property
     def all_plots(self):
 
@@ -115,4 +135,5 @@ class Plots:
             self.turret_body,
             self.turret_barrel,
             self.projectiles,
+            self.charging,
         ]
