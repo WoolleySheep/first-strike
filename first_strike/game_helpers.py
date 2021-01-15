@@ -93,4 +93,3 @@ def get_thruster_angle(thruster):
         return normalise_angle(angle + math.pi / 2)
     else:
         raise ValueError(f"thruster must be one of {ENGINES[1:]}")
-    
