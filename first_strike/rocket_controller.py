@@ -1,25 +1,24 @@
 import math
 
-from game_data import PolarCoordinate
-from game_setup import game_data
 from math_helpers import normalise_angle
+from rocket_physics import calc_rocket_angular_velocity
 
 from player_controllers.player_rocket_controller import player_rocket_controller
 
 
-def rocket_controller():
+def rocket_controller(self):
 
-    player_controller_inputs = player_rocket_controller()
+    player_controller_inputs = player_rocket_controller(self)
     if player_controller_inputs is not None:
         return player_controller_inputs
 
-    return default_rocket_controller()
+    return default_rocket_controller(self)
 
 
-def default_rocket_controller():
+def default_rocket_controller(self):
 
-    max_main_engine_force = game_data.properties.rocket_properties.max_main_engine_force
-    max_thruster_force = game_data.properties.rocket_properties.max_thruster_force
+    max_main_engine_force = self.parameters.rocket.max_main_engine_force
+    max_thruster_force = self.parameters.rocket.max_thruster_force
 
     # If facing away from the turret, spin the rocket using the thrusters
     # Use PID controller
@@ -28,18 +27,15 @@ def default_rocket_controller():
     i_c = 0.01
 
     # Proportional
-    angular_disp = angle_to_turret()
+    angular_disp = angle_to_turret(self)
 
     # Integratal
-    angles = game_data.history.rocket_history.angles
-    timestep = game_data.environment.timestep
+    angles = self.history.rocket.angles
+    timestep = self.parameters.time.timestep
     integral_angles = sum(angles) * timestep
 
     # Derivative
-    if len(angles) < 2:
-        angular_vel = 0.0
-    else:
-        angular_vel = (angles[-1] - angles[-2]) / timestep
+    angular_vel = calc_rocket_angular_velocity(self)
 
     control_signal = p_c * angular_disp + d_c * angular_vel + i_c * integral_angles
 
@@ -58,11 +54,12 @@ def default_rocket_controller():
     return me, lf, lr, rf, rr
 
 
-def angle_to_turret():
+def angle_to_turret(self):
 
-    rocket_x, rocket_y = game_data.history.rocket_history.locations[-1]
-    rocket_angle = game_data.history.rocket_history.angles[-1]
-    turret_x, turret_y = game_data.properties.turret_properties.location
+    rocket_angle = self.history.rocket.angle
 
-    angle = math.atan2(turret_y - rocket_y, turret_x - rocket_x)
+    angle = math.atan2(
+        *(self.parameters.turret.location - self.history.rocket.location)
+    )
+
     return normalise_angle(angle - rocket_angle)

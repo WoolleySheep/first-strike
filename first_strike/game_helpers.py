@@ -1,54 +1,51 @@
 import math
 
-from game_data import Coordinate, PolarCoordinate
-from game_setup import game_data
+from coordinate_classes import Coordinate
 from math_helpers import normalise_angle, distance_between_coordinates
 
-ENGINES = ("main", "left-front", "left-rear", "right-front", "right-rear")
 
+def is_within_bounds(self, location: Coordinate) -> bool:
 
-def is_within_bounds(location: Coordinate) -> bool:
-
-    w = game_data.environment.width
-    h = game_data.environment.height
+    w = self.parameters.environment.width
+    h = self.parameters.environment.height
 
     return (-w / 2 <= location.x <= w / 2) and (-h / 2 <= location.y <= h / 2)
 
 
-def has_sufficient_time_elapsed_since_last_shot():
+def has_sufficient_time_elapsed_since_last_shot(self):
 
-    when_fired = game_data.history.turret_history.when_fired
+    last_fired = self.history.turret.last_fired
 
-    if not when_fired:
+    if not last_fired:
         return True
 
-    current_time = game_data.history.timesteps[-1]
-    min_firing_interval = game_data.properties.turret_properties.min_firing_interval
+    current_time = self.history.time
+    min_firing_interval = self.parameters.turret.min_firing_interval
 
-    return current_time - when_fired[-1] >= min_firing_interval
+    return current_time - last_fired >= min_firing_interval
 
 
-def does_rocket_impact_turret():
+def does_rocket_impact_turret(self):
 
-    target_radius = game_data.properties.turret_properties.target_radius
-    rocket_location = game_data.history.rocket_history.locations[-1]
-    turret_location = game_data.properties.turret_properties.location
+    target_radius = self.parameters.turret.target_radius
+    rocket_location = self.history.rocket.location
+    turret_location = self.parameters.turret.location
 
     return (
         distance_between_coordinates(rocket_location, turret_location) <= target_radius
     )
 
 
-def does_projectile_impact_rocket():
+def does_projectile_impact_rocket(self):
 
-    target_radius = game_data.properties.rocket_properties.target_radius
-    rocket_location = game_data.history.rocket_history.locations[-1]
+    target_radius = self.parameters.rocket.target_radius
+    rocket_location = self.history.rocket.location
 
-    for projectile_history in game_data.history.projectile_histories:
-        if not projectile_history.on_board:
+    for projectile in self.history.projectiles:
+        if not projectile.on_board:
             continue
 
-        projectile_location = projectile_history.locations[-1]
+        projectile_location = projectile.location
         if (
             distance_between_coordinates(rocket_location, projectile_location)
             <= target_radius
@@ -58,38 +55,58 @@ def does_projectile_impact_rocket():
     return False
 
 
-def is_game_time_exceeded():
+def is_rocket_within_bounds(self):
 
-    current_time = game_data.history.timesteps[-1]
-    max_game_time = game_data.environment.max_game_time
-    timestep = game_data.environment.timestep
+    location = self.history.rocket.location
+    return is_within_bounds(self, location)
+
+
+def is_game_time_exceeded(self):
+
+    current_time = self.history.time
+    max_game_time = self.parameters.time.max_game_time
+    timestep = self.parameters.time.timestep
 
     return current_time > max_game_time - timestep
 
 
-def get_engine_force(engine):
+def get_engine_force(self, engine):
 
     if engine == "main":
-        return game_data.history.rocket_history.main_engine_forces[-1]
+        return self.history.rocket.main_engine_forces[-1]
     if engine == "left-front":
-        return game_data.history.rocket_history.left_front_thruster_forces[-1]
+        return self.history.rocket.left_front_thruster_forces[-1]
     if engine == "left-rear":
-        return game_data.history.rocket_history.left_rear_thruster_forces[-1]
+        return self.history.rocket.left_rear_thruster_forces[-1]
     if engine == "right-front":
-        return game_data.history.rocket_history.right_front_thruster_forces[-1]
+        return self.history.rocket.right_front_thruster_forces[-1]
     if engine == "right-rear":
-        return game_data.history.rocket_history.right_rear_thruster_forces[-1]
+        return self.history.rocket.right_rear_thruster_forces[-1]
 
-    raise ValueError(f"Engine must be in {ENGINES}")
+    raise ValueError(f"Engine must be in {self.parameters.animatoion.engine_labels}")
 
 
-def get_thruster_angle(thruster):
+def get_thruster_angle(self, thruster):
 
-    angle = game_data.history.rocket_history.angles[-1]
+    angle = self.history.rocket.angles[-1]
 
     if thruster in ("left-front", "left-rear"):
         return normalise_angle(angle - math.pi / 2)
     elif thruster in ("right-front", "right-rear"):
         return normalise_angle(angle + math.pi / 2)
     else:
-        raise ValueError(f"thruster must be one of {ENGINES[1:]}")
+        raise ValueError(
+            f"Thruster must be one of {self.parameters.animation.thruster_labels}"
+        )
+
+
+def get_thruster_rotation_direction(self, thruster):
+
+    if thruster in ("left-front", "right-rear"):
+        return -1
+    elif thruster in ("right-front", "left-rear"):
+        return 1
+    else:
+        raise ValueError(
+            f"thruster must be one of {self.parameters.animation.thruster_labels}"
+        )

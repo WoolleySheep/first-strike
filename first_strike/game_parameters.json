@@ -1,0 +1,42 @@
+{
+    "animation":
+    {
+        "fps": 20.0,
+        "square_root_board_area_barrel_length_ratio": 0.05,
+        "rocket_length_engine_bridge_width_ratio": 0.3,
+        "rocket_length_max_thrust_length_ratio": 1.0,
+        "thrust_cone_angle": 0.5235987756,
+        "game_over_alpha": 0.3,
+        "default_title": "Game in progress",
+        "engine_labels": ["main", "left-front", "left-rear", "right-front", "right-rear"]
+    },
+    "environment": 
+    {   
+        "width": 200.0, 
+        "height": 200.0
+    }, 
+    "time": 
+    {
+        "timestep": 0.05, 
+        "max_game_time": 120.0
+    },
+    "rocket":
+    {
+        "mass": 100.0,
+        "target_radius": 5.0,
+        "length": 5.0,
+        "max_main_engine_force": 100.0,
+        "max_thruster_force": 30.0,
+        "start_location": [-50.0, 50.0],
+        "start_angle": 0.0
+    },
+    "turret":
+    {
+        "location": [0.0, 0.0],
+        "start_angle": 0.0,
+        "target_radius": 10.0,
+        "max_rotation_speed": 0.5,
+        "projectile_speed": 70.0,
+        "min_firing_interval": 3.0
+    }
+}

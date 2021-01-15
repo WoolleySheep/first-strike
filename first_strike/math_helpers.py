@@ -1,6 +1,6 @@
 import math
 
-from game_data import Coordinate
+from coordinate_classes import Coordinate
 
 
 def normalise_angle(angle: float) -> float:
