@@ -4,7 +4,15 @@ from coordinate_classes import PolarCoordinate
 from game_classes import ProjectileHistory
 from game_helpers import is_within_bounds
 from math_helpers import normalise_angle
-from rocket_physics import calc_rocket_velocity, calc_rocket_acceleration, calc_rocket_angular_velocity, calc_rocket_angular_acceleration, calc_main_engine_acceleration, calc_thruster_acceleration, calc_thruster_angular_acceleration
+from rocket_physics import (
+    calc_rocket_velocity,
+    calc_rocket_acceleration,
+    calc_rocket_angular_velocity,
+    calc_rocket_angular_acceleration,
+    calc_main_engine_acceleration,
+    calc_thruster_acceleration,
+    calc_thruster_angular_acceleration,
+)
 
 
 def move_objects(self):

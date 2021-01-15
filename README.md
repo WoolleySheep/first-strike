@@ -4,7 +4,7 @@
 ### TODO
 * Turret controller: Rotate towards the angle required for a leading shot
 * Rocket controller: Use all engines to "slide" towards the turret, as well as rotating, account for current movement
-* Refactor into a clearer format (seperate physics and helpers)
+* Convert modules into proper classes
 * Check game_data hasn't been tampered with between turns
 * Add objects to block rocket and projectiles
 * Test for controller execution time

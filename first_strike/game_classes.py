@@ -16,7 +16,7 @@ class AnimationParameters:
     engine_labels: List[str]
 
     @property
-    def frame_interval(self) -> int:
+    def frame_interval_ms(self) -> int:
         """Frame interval in ms"""
         return int(1000 / self.fps)
 

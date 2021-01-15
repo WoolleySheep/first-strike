@@ -26,7 +26,7 @@ class Animation:
             self.fig,
             self.update,
             init_func=self.initialise,
-            interval=self.parameters.animation.frame_interval,
+            interval=self.parameters.animation.frame_interval_ms,
         )
 
         plt.show()
@@ -72,12 +72,13 @@ class Animation:
         return self.ax.scatter([location.x], [location.y], c="b")
 
     def update(self, i):
-
-        if not self.result:
-            self.process_controller_inputs()
-        if not self.result:
-            self.move_objects()
-            self.determine_winner()
+        
+        for _ in range(int(self.parameters.animation.frame_interval_ms / (1000 * self.parameters.time.timestep))):
+            if not self.result:
+                self.process_controller_inputs()
+            if not self.result:
+                self.move_objects()
+                self.determine_winner()
 
         self.plot_board()
 

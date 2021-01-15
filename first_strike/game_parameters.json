@@ -17,7 +17,7 @@
     }, 
     "time": 
     {
-        "timestep": 0.05, 
+        "timestep": 0.01, 
         "max_game_time": 120.0
     },
     "rocket":
@@ -27,7 +27,7 @@
         "length": 5.0,
         "max_main_engine_force": 100.0,
         "max_thruster_force": 30.0,
-        "start_location": [-50.0, 50.0],
+        "start_location": [50.0, 50.0],
         "start_angle": 0.0
     },
     "turret":

@@ -90,6 +90,8 @@ def calc_thruster_angular_acceleration(self, thruster: str) -> float:
     elif thruster in ("right-front", "left-rear"):
         direction = 1
     else:
-        raise ValueError(f"thruster must be one of {self.parameters.animation.thrusters}")
+        raise ValueError(
+            f"thruster must be one of {self.parameters.animation.thrusters}"
+        )
 
     return direction * mag_angular_acc

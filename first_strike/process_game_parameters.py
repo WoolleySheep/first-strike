@@ -1,8 +1,19 @@
 import json
 import math
 
-from game_classes import AnimationParameters, EnvironmentParameters, TimeParameters, RocketParameters, TurretParameters, Parameters, RocketHistory, TurretHistory, History
+from game_classes import (
+    AnimationParameters,
+    EnvironmentParameters,
+    TimeParameters,
+    RocketParameters,
+    TurretParameters,
+    Parameters,
+    RocketHistory,
+    TurretHistory,
+    History,
+)
 from coordinate_classes import Coordinate
+from math_helpers import distance_between_coordinates
 
 
 def process_game_parameters(self):
@@ -48,10 +59,6 @@ def _is_within_bounds(location, w, h):
 
     return (-w / 2 <= location[0] <= w / 2) and (-h / 2 <= location[1] <= h / 2)
 
-
-def _is_same_location(loc1, loc2):
-
-    return loc1[0] == loc2[0] and loc1[1] == loc2[1]
 
 
 def _validate_game_parameters(game_params):
@@ -103,7 +110,9 @@ def _validate_game_parameters(game_params):
     assert (
         time["max_game_time"] > time["timestep"]
     )  # Game cannot be shorter than 1 timestep
-    assert not _is_same_location(rocket["start_location"], turret["location"])
+    assert distance_between_coordinates(Coordinate(rocket["start_location"]), Coordinate(turret["location"])) > rocket["target_radius"]
+    assert distance_between_coordinates(Coordinate(rocket["start_location"]), Coordinate(turret["location"])) > turret["target_radius"]
+
 
 
 def _store_game_parameters(self, game_params):

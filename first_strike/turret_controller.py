@@ -48,13 +48,38 @@ def calc_rotation_velocity(self):
 
 def calc_intercept_angle(self):
     """https://math.stackexchange.com/questions/213545/solving-trigonometric-equations-of-the-form-a-sin-x-b-cos-x-c"""
-    # TODO: Account for edge case where rocket is flying directly towards/away from turret
-    # Actually, logically there will still only be one unique intercept point
-    # The only time the lines would be truly the same is if the rocket was:
-    # - At the same coordinate as the turret
-    # - Travelling at the same velocity as the projectile
     # TODO: Account for case where rocket is directly behind the turret and flying towards it
-    # TODO: turret_location.x - rocket_location.x == 0 breaks k, which breaks a lot of other things
+    #   - Existing method should be catching it, but the Divide by Zero isn't triggering because
+    #     of floating point rubbish.  Consider switching to if's.
+
+    def valid_angle(theta):
+
+        try:
+            xt = (turret_location.x - rocket_location.x) / (
+                rocket_velocity.x - projectile_speed * math.cos(theta)
+            )
+            x_equal = False
+            x_intercepts = xt >= 0
+        except ZeroDivisionError:  # x velocity of rocket and projectile are the same
+            x_equal = True
+            x_intercepts = math.isclose(turret_location.x, rocket_location.x)
+
+        try:
+            yt = (turret_location.y - rocket_location.y) / (
+                rocket_velocity.y - projectile_speed * math.sin(theta)
+            )
+            y_equal = False
+            y_intercepts = yt >= 0
+        except ZeroDivisionError:  # y velocity of rocket and projectile are the same
+            y_equal = True
+            y_intercepts = math.isclose(turret_location.y, rocket_location.y)
+
+        return (
+                not (x_equal and y_equal)
+                and x_intercepts
+                and y_intercepts
+                and ((x_equal is not y_equal) or math.isclose(xt, yt))
+            )
 
     projectile_speed = self.parameters.turret.projectile_speed
     turret_location = self.parameters.turret.location
@@ -83,40 +108,8 @@ def calc_intercept_angle(self):
             m = math.asin(rocket_velocity.x / projectile_speed)
 
     except ValueError:  # Intercept is no longer possible due to rocket velocity
-        return calc_angle2rocket()  # Track the rocket
-
-    def valid_angle(theta):
-
-        try:
-            t1 = (turret_location.x - rocket_location.x) / (
-                rocket_velocity.x - projectile_speed * math.cos(theta)
-            )
-            x_equal = False
-            x_intercepts = t1 >= 0
-        except ZeroDivisionError:  # x velocity of rocket and projectile are the same
-            x_equal = True
-            x_intercepts = math.isclose(turret_location.x, rocket_location.x)
-
-        try:
-            t2 = (turret_location.y - rocket_location.y) / (
-                rocket_velocity.y - projectile_speed * math.sin(theta)
-            )
-            y_equal = False
-            y_intercepts = t2 >= 0
-        except ZeroDivisionError:  # y velocity of rocket and projectile are the same
-            y_equal = True
-            y_intercepts = math.isclose(turret_location.y, rocket_location.y)
-
-            return (
-                not (x_equal and y_equal)
-                and x_intercepts
-                and y_intercepts
-                and ((x_equal is not y_equal) or math.isclose(t1, t2))
-            )
-
-        except ZeroDivisionError:  # Projectile and rocket x or y velocities are the same, can never intersect
-            return False
-
+        return calc_angle2rocket(self)  # Track the rocket
+    
     intercept_angle = normalise_angle(m - beta)
     if valid_angle(intercept_angle):
         return intercept_angle
@@ -148,7 +141,10 @@ def will_projectile_hit_rocket(self):
     except ZeroDivisionError:  # When rocket and projectile have exactly equal velocity
         t_m = 0.0
 
-    smallest_distance = math.sqrt(a * t_m ** 2 + b * t_m + c)
+    try:
+        smallest_distance = math.sqrt(a * t_m ** 2 + b * t_m + c)
+    except ValueError:  # Float goes slightly below 0, breaking math.sqrt
+        smallest_distance = 0.0
 
     target_radius = self.parameters.rocket.target_radius
 
@@ -157,4 +153,4 @@ def will_projectile_hit_rocket(self):
 
 def calc_angle2rocket(self):
 
-    return math.atan2(*(self.history.rocket.location - self.parameters.turret.location))
+    return math.atan2(*(list(self.history.rocket.location - self.parameters.turret.location)[::-1]))

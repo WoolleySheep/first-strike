@@ -33,11 +33,11 @@ def _get_controller_inputs(self):
         rocket_error = error
         rocket_controller_failed = True
 
-    try:
-        turret_inputs = turret_controller(self)
-    except Exception as error:
-        turret_error = error
-        turret_controller_failed = True
+    # try:
+    turret_inputs = turret_controller(self)
+    # except Exception as error:
+    #     turret_error = error
+    #     turret_controller_failed = True
 
     _check_controller_failure(
         self,

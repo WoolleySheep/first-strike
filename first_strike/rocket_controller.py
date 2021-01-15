@@ -59,7 +59,7 @@ def angle_to_turret(self):
     rocket_angle = self.history.rocket.angle
 
     angle = math.atan2(
-        *(self.parameters.turret.location - self.history.rocket.location)
+        *list(self.parameters.turret.location - self.history.rocket.location)[::-1]
     )
 
     return normalise_angle(angle - rocket_angle)
