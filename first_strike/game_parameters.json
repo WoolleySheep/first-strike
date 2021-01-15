@@ -27,7 +27,7 @@
         "length": 5.0,
         "max_main_engine_force": 100.0,
         "max_thruster_force": 30.0,
-        "start_location": [40.0, 50.0],
+        "start_location": [0.0, 30.0],
         "start_angle": 0.0
     },
     "turret":
