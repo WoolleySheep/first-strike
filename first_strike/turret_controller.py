@@ -1,6 +1,7 @@
 import math
 
 
+from coordinate_classes import Coordinate, PolarCoordinate
 from game_helpers import has_sufficient_time_elapsed_since_last_shot
 from math_helpers import normalise_angle
 from player_controllers.player_rocket_controller import player_rocket_controller
@@ -21,7 +22,8 @@ def default_turret_controller(self):
     if not has_sufficient_time_elapsed_since_last_shot(self):
         return calc_rotation_velocity(self), False
 
-    if will_projectile_hit_rocket(self):
+    # TODO: Allow turret to fire if it will hit the rocket before the obstacle
+    if will_projectile_hit_rocket(self) and not will_projectile_hit_obstacle(self):
         return calc_rotation_velocity(self), True
 
     return calc_rotation_velocity(self), False
@@ -29,21 +31,15 @@ def default_turret_controller(self):
 
 def calc_rotation_velocity(self):
 
-    max_rotation_speed = self.parameters.turret.max_rotation_speed
-    current_angle = self.history.turret.angle
-
-    intercept_angle = calc_intercept_angle(
-        self
-    )  # Get the angle whose shot would intercept the rocket
-    delta_angle = normalise_angle(intercept_angle - current_angle)
-    timestep = self.parameters.time.timestep
+    delta_angle = normalise_angle(
+        calc_intercept_angle(self) - self.history.turret.angle
+    )
     mag_rotation_speed = min(
-        max_rotation_speed, abs(delta_angle) / timestep
+        self.parameters.turret.max_rotation_speed,
+        abs(delta_angle) / self.parameters.time.timestep,
     )  # Take a smaller step if a full move would carry past the rocket
 
-    if delta_angle >= 0:
-        return mag_rotation_speed
-    return -mag_rotation_speed
+    return (1 if delta_angle >= 0 else -1) * mag_rotation_speed
 
 
 def calc_intercept_angle(self):
@@ -118,17 +114,51 @@ def calc_intercept_angle(self):
 
 def will_projectile_hit_rocket(self):
 
-    projectile_speed = self.parameters.turret.projectile_speed
-    turret_location = self.parameters.turret.location
-    turret_angle = self.history.turret.angle
-
-    rocket_velocity = calc_rocket_velocity(self)
     rocket_location = self.history.rocket.location
+    rocket_velocity = calc_rocket_velocity(self)
 
-    x1 = rocket_velocity.x - projectile_speed * math.cos(turret_angle)
-    x2 = rocket_location.x - turret_location.x
-    y1 = rocket_velocity.y - projectile_speed * math.sin(turret_angle)
-    y2 = rocket_location.y - turret_location.y
+    turret_location = self.parameters.turret.location
+    projectile_speed = self.parameters.turret.projectile_speed
+    turret_angle = self.history.turret.angle
+    projectile_velocity = PolarCoordinate(projectile_speed, turret_angle).pol2cart()
+
+    target_radius = self.parameters.rocket.target_radius
+
+    return will_a_b_collide(
+        rocket_location,
+        rocket_velocity,
+        turret_location,
+        projectile_velocity,
+        target_radius / 2,
+    )
+
+
+def will_projectile_hit_obstacle(self):
+
+    turret_location = self.parameters.turret.location
+    projectile_speed = self.parameters.turret.projectile_speed
+    turret_angle = self.history.turret.angle
+    projectile_velocity = PolarCoordinate(projectile_speed, turret_angle).pol2cart()
+
+    for obstacle in self.parameters.environment.obstacles:
+        if will_a_b_collide(
+            obstacle.location,
+            Coordinate(0.0, 0.0),
+            turret_location,
+            projectile_velocity,
+            obstacle.radius,
+        ):
+            return True
+
+    return False
+
+
+def will_a_b_collide(location1, velocity1, location2, velocity2, max_collision_dist):
+
+    x1 = velocity2.x - velocity1.x
+    x2 = location2.x - location1.x
+    y1 = velocity2.y - velocity1.y
+    y2 = location2.y - location1.y
 
     a = x1 ** 2 + y1 ** 2
     b = 2 * (x1 * x2 + y1 * y2)
@@ -146,9 +176,7 @@ def will_projectile_hit_rocket(self):
     except ValueError:  # Float goes slightly below 0, breaking math.sqrt
         smallest_distance = 0.0
 
-    target_radius = self.parameters.rocket.target_radius
-
-    return smallest_distance <= target_radius / 2  # Aim for half the radius
+    return smallest_distance <= max_collision_dist
 
 
 def calc_angle2rocket(self):

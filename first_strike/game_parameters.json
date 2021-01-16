@@ -13,7 +13,22 @@
     "environment": 
     {   
         "width": 200.0, 
-        "height": 200.0
+        "height": 200.0,
+        "obstacles": 
+        [
+            {
+                "location": [50.0, 50.0], 
+                "radius": 5.0
+            },
+            {
+                "location": [-50.0, 25.0], 
+                "radius": 5.0
+            },
+            {
+                "location": [-10.0, -40.0], 
+                "radius": 5.0
+            }
+        ]
     }, 
     "time": 
     {
@@ -27,7 +42,7 @@
         "length": 5.0,
         "max_main_engine_force": 5000.0,
         "max_thruster_force": 2000.0,
-        "start_location": [50.0, 0.0],
+        "start_location": [40.0, 20.0],
         "start_angle": 0.0
     },
     "turret":

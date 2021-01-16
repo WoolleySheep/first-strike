@@ -4,7 +4,8 @@
 ### TODO
 * Convert modules into proper classes, especially the controllers
 * Check game_data hasn't been tampered with between turns
-* Add objects to block rocket and projectiles
+* Allow turret to fire if it will hit the rocket before the obstacle
+* Display obstacles as real size
 * Test for controller execution time
 * Fix "projectiles not disappearing when off board" problem 
 ### Description

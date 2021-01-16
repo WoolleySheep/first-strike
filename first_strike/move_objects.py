@@ -2,7 +2,7 @@ import math
 
 from coordinate_classes import PolarCoordinate
 from game_classes import ProjectileHistory
-from game_helpers import is_within_bounds
+from game_helpers import is_within_bounds, has_hit_obstacle
 from math_helpers import normalise_angle
 from rocket_physics import (
     calc_rocket_velocity,
@@ -81,7 +81,9 @@ def mark_projectiles_off_board(self):
         if not projectile.on_board:
             continue
 
-        if not is_within_bounds(self, projectile.location):
+        if not is_within_bounds(self, projectile.location) or has_hit_obstacle(
+            self, projectile.location
+        ):
             projectile.on_board = False
 
 

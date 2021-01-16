@@ -2,6 +2,7 @@ from game_helpers import (
     does_rocket_impact_turret,
     does_projectile_impact_rocket,
     is_rocket_within_bounds,
+    has_rocket_hit_obstacle,
     is_game_time_exceeded,
 )
 
@@ -13,6 +14,8 @@ def determine_winner(self):
 
     if not is_rocket_within_bounds(self):
         self.title = "TURRET WIN: The rocket has gone out-of-bounds"
+    elif has_rocket_hit_obstacle(self):
+        self.title = "TURRET WIN: The rocket has struck an obstacle"
     elif rocket_hit_turret and projectile_hit_rocket:
         self.title = "DRAW: The rocket and turret have destroyed each other"
     elif rocket_hit_turret:

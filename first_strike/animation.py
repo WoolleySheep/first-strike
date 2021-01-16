@@ -49,6 +49,8 @@ class Animation:
 
         self.set_charging_time()
 
+        self.plots.obstacles = self.plot_obstacles()
+
         (self.plots.rocket_body,) = self.ax.plot([], c="g")
         (self.plots.engine_bridge,) = self.ax.plot([], c="g")
         (self.plots.main_engine_thrust,) = self.ax.plot([], c="r")
@@ -90,6 +92,16 @@ class Animation:
         self.ax2.xaxis.set_visible(False)
         self.ax2.yaxis.tick_right()
 
+    def plot_obstacles(self):
+
+        x_values = [
+            obstacle.location.x for obstacle in self.parameters.environment.obstacles
+        ]
+        y_values = [
+            obstacle.location.y for obstacle in self.parameters.environment.obstacles
+        ]
+        return self.ax.scatter(x_values, y_values, c="y", marker="s")
+
     def plot_turret_body(self):
 
         location = self.parameters.turret.location
@@ -117,6 +129,8 @@ class Animation:
 class Plots:
     def __init__(self):
 
+        self.obstacles = None
+
         self.rocket_body = None
         self.engine_bridge = None
         self.main_engine_thrust = None
@@ -136,6 +150,7 @@ class Plots:
     def all_plots(self):
 
         return [
+            self.obstacles,
             self.rocket_body,
             self.engine_bridge,
             self.main_engine_thrust,

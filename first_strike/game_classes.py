@@ -26,9 +26,16 @@ class AnimationParameters:
 
 
 @dataclass
+class ObstacleParameters:
+    location: Coordinate
+    radius: float
+
+
+@dataclass
 class EnvironmentParameters:
     width: float
     height: float
+    obstacles: List[ObstacleParameters]
 
     @property
     def board_area(self) -> float:

@@ -4,6 +4,7 @@ import math
 from game_classes import (
     AnimationParameters,
     EnvironmentParameters,
+    ObstacleParameters,
     TimeParameters,
     RocketParameters,
     TurretParameters,
@@ -82,6 +83,18 @@ def _validate_game_parameters(game_params):
     environment = game_params["environment"]
     assert _is_positive_float(environment["width"])
     assert _is_positive_float(environment["height"])
+    assert all(
+        [
+            all([type(i) is float for i in obstacle["location"]])
+            for obstacle in environment["obstacles"]
+        ]
+    )
+    assert all(
+        [
+            _is_positive_float(obstacle["radius"])
+            for obstacle in environment["obstacles"]
+        ]
+    )
 
     time = game_params["time"]
     assert _is_positive_float(time["timestep"])
@@ -121,6 +134,24 @@ def _validate_game_parameters(game_params):
         )
         > turret["target_radius"]
     )
+    assert all(
+        [
+            distance_between_coordinates(
+                Coordinate(rocket["start_location"]), Coordinate(obstacle["location"])
+            )
+            > obstacle["radius"]
+            for obstacle in environment["obstacles"]
+        ]
+    )
+    assert all(
+        [
+            distance_between_coordinates(
+                Coordinate(turret["location"]), Coordinate(obstacle["location"])
+            )
+            > obstacle["radius"]
+            for obstacle in environment["obstacles"]
+        ]
+    )
 
 
 def _store_game_parameters(self, game_params):
@@ -138,7 +169,13 @@ def _store_game_parameters(self, game_params):
     )
 
     environment = game_params["environment"]
-    environment_obj = EnvironmentParameters(environment["width"], environment["height"])
+    obstacles = [
+        ObstacleParameters(Coordinate(obstacle["location"]), obstacle["radius"])
+        for obstacle in environment["obstacles"]
+    ]
+    environment_obj = EnvironmentParameters(
+        environment["width"], environment["height"], obstacles
+    )
 
     time = game_params["time"]
     time_obj = TimeParameters(time["timestep"], time["max_game_time"])

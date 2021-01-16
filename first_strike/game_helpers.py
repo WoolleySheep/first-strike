@@ -12,6 +12,15 @@ def is_within_bounds(self, location: Coordinate) -> bool:
     return (-w / 2 <= location.x <= w / 2) and (-h / 2 <= location.y <= h / 2)
 
 
+def has_hit_obstacle(self, location: Coordinate) -> bool:
+
+    for obstacle in self.parameters.environment.obstacles:
+        if distance_between_coordinates(location, obstacle.location) <= obstacle.radius:
+            return True
+
+    return False
+
+
 def has_sufficient_time_elapsed_since_last_shot(self):
 
     last_fired = self.history.turret.last_fired
@@ -57,8 +66,12 @@ def does_projectile_impact_rocket(self):
 
 def is_rocket_within_bounds(self):
 
-    location = self.history.rocket.location
-    return is_within_bounds(self, location)
+    return is_within_bounds(self, self.history.rocket.location)
+
+
+def has_rocket_hit_obstacle(self):
+
+    return has_hit_obstacle(self, self.history.rocket.location)
 
 
 def is_game_time_exceeded(self):
