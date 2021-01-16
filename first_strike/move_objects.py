@@ -35,9 +35,7 @@ def move_the_rocket(self):
     timestep = self.parameters.time.timestep
 
     rocket_vel = calc_rocket_velocity(self)
-    rocket_acc = calc_rocket_acceleration(self)
     rocket_ang_vel = calc_rocket_angular_velocity(self)
-    rocket_ang_acc = calc_rocket_angular_acceleration(self)
     main_engine_acc = calc_main_engine_acceleration(self)
     thrusters = self.parameters.animation.thruster_labels
     thrusters_acc = [
@@ -47,8 +45,8 @@ def move_the_rocket(self):
         calc_thruster_angular_acceleration(self, thruster) for thruster in thrusters
     ]
 
-    acc = rocket_acc + main_engine_acc + sum(thrusters_acc)
-    ang_acc = rocket_ang_acc + sum(thrusters_ang_acc)
+    acc = main_engine_acc + sum(thrusters_acc)
+    ang_acc = sum(thrusters_ang_acc)
 
     updated_vel = rocket_vel + acc * timestep
     updated_ang_vel = rocket_ang_vel + ang_acc * timestep
