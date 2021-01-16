@@ -2,13 +2,11 @@
 ## Programming game between a rocket and a turret
 
 ### TODO
-* Rocket controller: Move away from current turret angle
-* Convert modules into proper classes
+* Convert modules into proper classes, especially the controllers
 * Check game_data hasn't been tampered with between turns
 * Add objects to block rocket and projectiles
 * Test for controller execution time
 * Fix "projectiles not disappearing when off board" problem 
-* Exercise controllers for fitness; provide them with situations and validate responses
 ### Description
 The aim of the game is simple:
 * The rocket has to crash into the turret
