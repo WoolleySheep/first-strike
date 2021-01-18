@@ -28,7 +28,7 @@ def default_rocket_controller(self):
     turret_location = self.parameters.turret.location
     turret_radius = self.parameters.turret.target_radius
 
-    turret_attraction_factor = 20
+    turret_attraction_factor = 30
     edge_avoidance_factor = 5
     obstacle_avoidance_factor = 5
     projectile_avoidance_factor = 7

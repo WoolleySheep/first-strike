@@ -17,25 +17,22 @@ from coordinate_classes import Coordinate
 from math_helpers import distance_between_coordinates
 
 
-def process_game_parameters(self):
+def process_game_parameters():
 
     game_parameters = _read_game_parameters()
 
     _validate_game_parameters(game_parameters)
 
-    _store_game_parameters(self, game_parameters)
-
+    return _store_game_parameters(game_parameters)
 
 def _read_game_parameters():
 
     with open("first_strike/game_parameters.json") as f:
         return json.load(f)
 
-
 def _is_positive_float(value):
 
-    return type(value) is float and value > 0
-
+return type(value) is float and value > 0
 
 def _is_angle(angle):
 
@@ -50,16 +47,13 @@ def _is_list_type(my_list, length, element_type):
         and all([type(e) is element_type for e in my_list])
     )
 
-
 def _is_location(location, w, h):
 
     return _is_list_type(location, 2, float) and _is_within_bounds(location, w, h)
 
-
-def _is_within_bounds(location, w, h):
+def _is_within_limits(location, w, h):
 
     return (-w / 2 <= location[0] <= w / 2) and (-h / 2 <= location[1] <= h / 2)
-
 
 def _validate_game_parameters(game_params):
 
@@ -199,7 +193,7 @@ def _store_game_parameters(self, game_params):
         turret_params["min_firing_interval"],
     )
 
-    self.parameters = Parameters(
+    parameters = Parameters(
         animation_obj, environment_obj, time_obj, rocket_params_obj, turret_params_obj
     )
 
@@ -208,6 +202,6 @@ def _store_game_parameters(self, game_params):
     )
     turret_history_obj = TurretHistory([turret_params["start_angle"]])
 
-    self.history = History(rocket_history_obj, turret_history_obj)
+    history = History(rocket_history_obj, turret_history_obj)
 
-    self.title = animation["default_title"]
+    return parameters, history
