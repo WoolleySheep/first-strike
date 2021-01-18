@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 
 from game_classes import Parameters, History
+from plotting import Plotting
 
 
 class Animation:
@@ -10,7 +11,7 @@ class Animation:
         self.parameters = parameters
         self.history = history
         self.movement = movement
-        self.plotting = plotting
+        self.plotting = Plotting(parameters, history)
         self.animation_func = None
 
     from process_controller_inputs import process_controller_inputs

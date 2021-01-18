@@ -14,7 +14,6 @@ class FirstStrike:
         self.helpers = None
         self.physics = None
         self.movement = None
-        self.plotting = None
         self.animation = None
 
 
@@ -24,9 +23,8 @@ class FirstStrike:
         self.helpers = Helpers(self.parameters, self.history)
         self.physics = Physics(self.parameters, self.history)
         self.movement = Movement(self.parameters, self.history, self.physics, self.helpers)
-        self.plotting = Plotting(self.parameters, self.history)
 
-        self.animation = Animation(self.parameters, self.history, self.movement, self.plotting)
+        self.animation = Animation(self.parameters, self.history, self.movement)
         self.animation.run()
 
 
