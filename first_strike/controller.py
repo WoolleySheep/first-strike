@@ -20,8 +20,6 @@ class Controller:
 
 class MetaController:
 
-
-
     def __init__(parameters, history, helpers, physics, default_controller, player_controller):
         self.default_controller = default_controller(parameters, history, helpers, physics)
         self.player_controller = player_controller(parameters, history, helpers, physics)
@@ -34,13 +32,46 @@ class MetaController:
 
         return self.default_controller.calc_inputs()
 
+    def are_inputs_valid(self):
+        raise NotImplemented
+
 class RocketMetaController(MetaController):
 
     def __init__(self, parameters, history, helpers, physics):
         super().__init__(parameters, history, helpers, physics, DefaultRocketController, PlayerRocketController)
 
+    def are_inputs_valid(self):
+
+        return len(rocket_inputs) == 5
+        and all([type(input_) is float for input_ in rocket_inputs])
+        and 0 <= rocket_inputs[0] <= self.parameters.rocket.max_main_engine_force
+        and all(
+            [
+                0 <= input_ <= self.parameters.rocket.max_thruster_force
+                for input_ in rocket_inputs[1:]
+            ]
+        )
+
+
 class TurretMetaController(MetaController):
 
     def __init__(self, parameters, history, helpers, physics):
         super().__init__(parameters, history, helpers, physics, DefaultTurretController, PlayerTurretController)
+
+    def are_inputs_valid(self):
+
+        max_rotation_speed = self.parameters.turret.max_rotation_speed
+        return (
+            len(turret_inputs) == 2
+            and type(turret_inputs[0]) is float
+            and -max_rotation_speed <= turret_inputs[0] <= max_rotation_speed
+            and type(turret_inputs[1]) is bool
+            and (not turret_inputs[1] or self.helpers.can_turret_fire())
+        )
+
+class Controllers():
+
+    def __init__(self, parameters, history, helpers, physics):
+        self.rocket_controller = RocketMetaController(parameters, history, helpers, physics)
+        self.turret_controller = TurretMetaController(parameters, history, helpers, physics)
 
