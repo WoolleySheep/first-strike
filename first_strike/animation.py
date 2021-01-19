@@ -7,11 +7,12 @@ from plotting import Plotting
 
 
 class Animation:
-    def __init__(self, parameters: Parameters, history: History, movement, plotting):
+    def __init__(self, parameters: Parameters, history: History, movement, controllers):
         self.parameters = parameters
         self.history = history
         self.movement = movement
-        self.plotting = Plotting(parameters, history)
+        self.controllers = controllers
+        self.plotting = Plotting(parameters, history, controllers)
         self.animation_func = None
 
     from process_controller_inputs import process_controller_inputs
@@ -33,7 +34,7 @@ class Animation:
 
     @property
     def result(self):
-        return self.title != self.parameters.animation.default_title
+        return self.plotting.title != self.parameters.animation.default_title
 
     @property
     def alpha(self):
@@ -44,18 +45,17 @@ class Animation:
         return self.plotting.plots
 
     def _ntimesteps_per_frame_refresh(self):
-        
+
         return int(
-                self.parameters.animation.frame_interval_ms
-                / (1000 * self.parameters.time.timestep)
-            )
+            self.parameters.animation.frame_interval_ms
+            / (1000 * self.parameters.time.timestep)
+        )
 
     def update(self, i):
 
-        for _ in range(self._ntimesteps_per_frame_refresh()
-        ):
+        for _ in range(self._ntimesteps_per_frame_refresh()):
             if not self.result:
-                self.result = self.controllers.process_inputs()
+                self.controllers.process_inputs()
             if not self.result:
                 self.movement.move_objects()
                 self.determine_winner()
@@ -63,4 +63,3 @@ class Animation:
         self.plotting.plot_board()
 
         return self.plotting.plots
-

@@ -25,14 +25,17 @@ def process_game_parameters():
 
     return _store_game_parameters(game_parameters)
 
+
 def _read_game_parameters():
 
     with open("first_strike/game_parameters.json") as f:
         return json.load(f)
 
+
 def _is_positive_float(value):
 
-return type(value) is float and value > 0
+    return type(value) is float and value > 0
+
 
 def _is_angle(angle):
 
@@ -47,13 +50,16 @@ def _is_list_type(my_list, length, element_type):
         and all([type(e) is element_type for e in my_list])
     )
 
+
 def _is_location(location, w, h):
 
     return _is_list_type(location, 2, float) and _is_within_bounds(location, w, h)
 
+
 def _is_within_limits(location, w, h):
 
     return (-w / 2 <= location[0] <= w / 2) and (-h / 2 <= location[1] <= h / 2)
+
 
 def _validate_game_parameters(game_params):
 

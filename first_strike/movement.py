@@ -22,7 +22,6 @@ class Movement:
         self.physics = physics
         self.helpers = helpers
 
-
     def move_objects(self):
 
         self.move_the_rocket()
@@ -37,20 +36,20 @@ class Movement:
 
         self.update_the_time()
 
-
     def move_the_rocket(self):
 
         rocket_vel = self.physics.calc_rocket_velocity()
         rocket_ang_vel = self.physics.calc_rocket_angular_velocity()
         main_engine_acc = self.physics.calc_main_engine_acceleration()
-                
+
         thrusters = self.parameters.animation.thruster_labels
 
         thrusters_acc = [
             self.physics.calc_thruster_acceleration(thruster) for thruster in thrusters
         ]
         thrusters_ang_acc = [
-            self.physics.calc_thruster_angular_acceleration(thruster) for thruster in thrusters
+            self.physics.calc_thruster_angular_acceleration(thruster)
+            for thruster in thrusters
         ]
 
         acc = main_engine_acc + sum(thrusters_acc)
@@ -67,7 +66,6 @@ class Movement:
         angles = self.history.rocket.angles
         angles.append(angles[-1] + updated_ang_vel * timestep)
 
-
     def move_projectiles(self):
 
         timestep = self.parameters.time.timestep
@@ -80,9 +78,10 @@ class Movement:
 
             firing_angle = projectile.firing_angle
             locations = projectile.locations
-            delta = PolarCoordinate(projectile_speed * timestep, firing_angle).pol2cart()
+            delta = PolarCoordinate(
+                projectile_speed * timestep, firing_angle
+            ).pol2cart()
             locations.append(locations[-1] + delta)
-
 
     def mark_projectiles_off_board(self):
 
@@ -90,15 +89,15 @@ class Movement:
             if not projectile.on_board:
                 continue
 
-            projectile.on_board = self.helpers.is_within_bounds(projectile.location) and not self.helpers.has_hit_obstacle(projectile.location)
-
+            projectile.on_board = self.helpers.is_within_bounds(
+                projectile.location
+            ) and not self.helpers.has_hit_obstacle(projectile.location)
 
     def should_fire_a_projectile(self):
 
         last_fired = self.history.turret.last_fired
         current_time = self.history.time
         return last_fired and math.isclose(current_time, last_fired)
-
 
     def fire_a_projectile(self):
 
@@ -110,7 +109,6 @@ class Movement:
             ProjectileHistory([turret_location], launch_angle, current_time, True)
         )
 
-
     def rotate_the_turret(self):
 
         rotation_velocity = self.history.turret.rotation_velocity
@@ -120,7 +118,6 @@ class Movement:
 
         angles = self.history.turret.angles
         angles.append(normalise_angle(angles[-1] + d_theta))
-
 
     def update_the_time(self):
 
