@@ -53,7 +53,7 @@ def _is_list_type(my_list, length, element_type):
 
 def _is_location(location, w, h):
 
-    return _is_list_type(location, 2, float) and _is_within_bounds(location, w, h)
+    return _is_list_type(location, 2, float) and _is_within_limits(location, w, h)
 
 
 def _is_within_limits(location, w, h):
@@ -154,7 +154,7 @@ def _validate_game_parameters(game_params):
     )
 
 
-def _store_game_parameters(self, game_params):
+def _store_game_parameters(game_params):
 
     animation = game_params["animation"]
     animation_obj = AnimationParameters(

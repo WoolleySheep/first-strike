@@ -1,11 +1,12 @@
 import math
+import matplotlib.pyplot as plt
 
 from coordinate_classes import PolarCoordinate
 from math_helpers import normalise_angle
 
 
 class Plotting:
-    def __init__(parameters, history, controllers):
+    def __init__(self, parameters, history, controllers):
         self.parameters = parameters
         self.history = history
         self.controllers = controllers
@@ -55,7 +56,7 @@ class Plotting:
             self.charging,
         ]
 
-    @property
+    @ property
     def result(self):
 
         return self.title != self.parameters.animation.default_title
@@ -64,7 +65,7 @@ class Plotting:
 
         if self.result:
             return
-
+        
         rocket_controller = self.controllers.rocket_controller
         turret_controller = self.controllers.turret_controller
 
@@ -87,6 +88,7 @@ class Plotting:
             self.title = "TURRET WIN: Rocket inputs invalid"
         elif not turret_controller.inputs_valid:
             self.title = "ROCKET WIN: Turret inputs invalid"
+
 
     def set_subplot_titles(self):
 

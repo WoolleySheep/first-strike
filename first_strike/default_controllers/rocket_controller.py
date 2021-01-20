@@ -1,10 +1,8 @@
 import math
 
+from controller import Controller
 from coordinate_classes import Coordinate, PolarCoordinate
 from math_helpers import normalise_angle, distance_between_coordinates
-from rocket_physics import calc_rocket_angular_velocity, calc_rocket_velocity
-
-from controller import Controller
 
 
 class RocketController(Controller):

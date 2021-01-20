@@ -1,5 +1,5 @@
 from animation import Animation
-from controller import Controllers
+from meta_controller import Controllers
 from helpers import Helpers
 from movement import Movement
 from game_parameters import process_game_parameters
@@ -29,7 +29,7 @@ class FirstStrike:
             self.parameters, self.history, self.physics, self.helpers
         )
 
-        self.animation = Animation(self.parameters, self.history, self.movement)
+        self.animation = Animation(self.parameters, self.history, self.movement, self.controllers)
         self.animation.run()
 
 

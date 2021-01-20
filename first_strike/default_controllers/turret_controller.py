@@ -1,12 +1,8 @@
 import math
 
-
-from coordinate_classes import Coordinate, PolarCoordinate
-from game_helpers import has_sufficient_time_elapsed_since_last_shot
-from math_helpers import normalise_angle
-from rocket_physics import calc_rocket_velocity
-
 from controller import Controller
+from coordinate_classes import Coordinate, PolarCoordinate
+from math_helpers import normalise_angle
 
 
 class TurretController(Controller):

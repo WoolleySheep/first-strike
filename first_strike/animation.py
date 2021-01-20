@@ -15,16 +15,11 @@ class Animation:
         self.plotting = Plotting(parameters, history, controllers)
         self.animation_func = None
 
-    from process_controller_inputs import process_controller_inputs
-    from move_objects import move_objects
-    from determine_winner import determine_winner
-    from plot_board import plot_board
-
     def run(self):
         """Run the game"""
 
         self.animation_func = animation.FuncAnimation(
-            self.fig,
+            self.plotting.fig,
             self.update,
             init_func=self.initialise,
             interval=self.parameters.animation.frame_interval_ms,
