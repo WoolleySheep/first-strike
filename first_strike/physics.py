@@ -1,4 +1,7 @@
+import math
+
 from coordinate_classes import Coordinate, PolarCoordinate
+from math_helpers import normalise_angle
 
 
 class Physics:

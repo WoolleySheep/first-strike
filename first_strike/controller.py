@@ -9,8 +9,8 @@ from dataclasses import dataclass
 class Controller:
     parameters: Parameters
     history: History
-    helpers: Helpers
     physics: Physics
+    helpers: Helpers
 
     def calc_inputs(self):
         raise NotImplementedError

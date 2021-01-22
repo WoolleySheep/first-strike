@@ -11,7 +11,7 @@ class TurretController(Controller):
 
     def calc_inputs(self):
 
-        if not self.has_sufficient_time_elapsed_since_last_shot():
+        if not self.helpers.can_turret_fire():
             return self.calc_rotation_velocity(), False
 
         # TODO: Allow turret to fire if it will hit the rocket before the obstacle
@@ -116,7 +116,7 @@ class TurretController(Controller):
 
         target_radius = self.parameters.rocket.target_radius
 
-        return will_a_b_collide(
+        return self.will_a_b_collide(
             rocket_location,
             rocket_velocity,
             turret_location,
@@ -132,7 +132,7 @@ class TurretController(Controller):
         projectile_velocity = PolarCoordinate(projectile_speed, turret_angle).pol2cart()
 
         for obstacle in self.parameters.environment.obstacles:
-            if will_a_b_collide(
+            if self.will_a_b_collide(
                 obstacle.location,
                 Coordinate(0.0, 0.0),
                 turret_location,
@@ -143,6 +143,7 @@ class TurretController(Controller):
 
         return False
 
+    @staticmethod
     def will_a_b_collide(
         location1, velocity1, location2, velocity2, max_collision_dist
     ):

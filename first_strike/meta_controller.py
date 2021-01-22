@@ -1,3 +1,5 @@
+from controller import Controller
+
 from default_controllers.rocket_controller import (
     RocketController as DefaultRocketController,
 )
@@ -11,10 +13,11 @@ from player_controllers.turret_controller import (
     TurretController as PlayerTurretController,
 )
 
-class MetaController:
+class MetaController(Controller):
     def __init__(
         self, parameters, history, physics, helpers, default_controller, player_controller
     ):
+        super().__init__(parameters, history, physics, helpers)
         self.default_controller = default_controller(
             parameters, history, physics, helpers
         )
@@ -54,8 +57,8 @@ class RocketMetaController(MetaController):
         super().__init__(
             parameters,
             history,
-            helpers,
             physics,
+            helpers,
             DefaultRocketController,
             PlayerRocketController,
         )
@@ -117,7 +120,7 @@ class TurretMetaController(MetaController):
 
     def store_inputs(self):
 
-        rotation_velocity, fired = turret_inputs
+        rotation_velocity, fired = self.inputs
 
         self.history.turret.rotation_velocities.append(rotation_velocity)
         if fired:
