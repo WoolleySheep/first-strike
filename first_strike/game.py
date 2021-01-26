@@ -1,4 +1,5 @@
 from animation import Animation
+from determine_winner import DetermineWinner
 from meta_controller import Controllers
 from helpers import Helpers
 from movement import Movement
@@ -28,8 +29,19 @@ class FirstStrike:
         self.controllers = Controllers(
             self.parameters, self.history, self.physics, self.helpers
         )
+        self.plotting = Plotting(
+            self.parameters, self.history, self.helpers, self.controllers
+        )
+        self.determine_winner = DetermineWinner(self.helpers, self.plotting)
 
-        self.animation = Animation(self.parameters, self.history, self.movement, self.controllers)
+        self.animation = Animation(
+            self.parameters,
+            self.history,
+            self.movement,
+            self.controllers,
+            self.plotting,
+            self.determine_winner,
+        )
         self.animation.run()
 
 

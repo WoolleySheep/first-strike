@@ -16,7 +16,6 @@ class Movement:
 
         self.move_the_rocket()
 
-        self.move_projectiles()
         self.mark_projectiles_off_board()
 
         if self.should_fire_a_projectile():
@@ -56,32 +55,16 @@ class Movement:
         angles = self.history.rocket.angles
         angles.append(angles[-1] + updated_ang_vel * timestep)
 
-    def move_projectiles(self):
-
-        timestep = self.parameters.time.timestep
-        projectile_speed = self.parameters.turret.projectile_speed
-        projectiles = self.history.projectiles
-
-        for projectile in projectiles:
-            if not projectile.on_board:
-                continue
-
-            firing_angle = projectile.firing_angle
-            locations = projectile.locations
-            delta = PolarCoordinate(
-                projectile_speed * timestep, firing_angle
-            ).pol2cart()
-            locations.append(locations[-1] + delta)
-
     def mark_projectiles_off_board(self):
 
         for projectile in self.history.projectiles:
+            location = self.helpers.calc_projectile_location(projectile)
             if not projectile.on_board:
                 continue
 
             projectile.on_board = self.helpers.is_within_bounds(
-                projectile.location
-            ) and not self.helpers.has_hit_obstacle(projectile.location)
+                location
+            ) and not self.helpers.has_hit_obstacle(location)
 
     def should_fire_a_projectile(self):
 
@@ -96,7 +79,7 @@ class Movement:
         current_time = self.history.time
 
         self.history.projectiles.append(
-            ProjectileHistory([turret_location], launch_angle, current_time, True)
+            ProjectileHistory(launch_angle, current_time, True)
         )
 
     def rotate_the_turret(self):

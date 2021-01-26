@@ -85,7 +85,7 @@ class Physics:
 
     def calc_thruster_angular_acceleration(self, thruster: str) -> float:
 
-        torque = self.calc_thruster_acceleration(thruster)
+        torque = self.calc_thruster_torque(thruster)
         moment_of_inertia = self.parameters.rocket.moment_of_inertia
 
         return torque / moment_of_inertia

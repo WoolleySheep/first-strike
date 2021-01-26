@@ -69,8 +69,8 @@ class Coordinate:
         return math.atan2(self.y, self.x)
 
     def cart2pol(self):
-        r = self.magnitude()
-        theta = self.angle()
+        r = self.magnitude
+        theta = self.angle
 
         return PolarCoordinate(r, theta)
 

@@ -12,8 +12,8 @@
     },
     "environment": 
     {   
-        "width": 300.0, 
-        "height": 300.0,
+        "width": 400.0, 
+        "height": 400.0,
         "obstacles": 
         [
             {
@@ -47,11 +47,11 @@
     },
     "turret":
     {
-        "location": [-100.0, -40.0],
+        "location": [-60.0, -60.0],
         "start_angle": 0.0,
         "target_radius": 10.0,
-        "max_rotation_speed": 0.7,
-        "projectile_speed": 40.0,
-        "min_firing_interval": 0.3
+        "max_rotation_speed": 1.0,
+        "projectile_speed": 50.0,
+        "min_firing_interval": 0.5
     }
 }

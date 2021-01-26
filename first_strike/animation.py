@@ -1,18 +1,25 @@
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
-
 from game_classes import Parameters, History
-from plotting import Plotting
 
 
 class Animation:
-    def __init__(self, parameters: Parameters, history: History, movement, controllers):
+    def __init__(
+        self,
+        parameters: Parameters,
+        history: History,
+        movement,
+        controllers,
+        plotting,
+        determine_winner,
+    ):
         self.parameters = parameters
         self.history = history
         self.movement = movement
         self.controllers = controllers
-        self.plotting = Plotting(parameters, history, controllers)
+        self.plotting = plotting
+        self.determine_winner = determine_winner
         self.animation_func = None
 
     def run(self):
@@ -53,7 +60,7 @@ class Animation:
                 self.controllers.process_inputs()
             if not self.result:
                 self.movement.move_objects()
-                self.determine_winner()
+                self.determine_winner.check_win_conditions()
 
         self.plotting.plot_board()
 

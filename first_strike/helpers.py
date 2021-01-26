@@ -1,6 +1,7 @@
 import math
 
-from coordinate_classes import Coordinate
+from coordinate_classes import Coordinate, PolarCoordinate
+from game_classes import ProjectileHistory
 from math_helpers import normalise_angle, distance_between_coordinates
 
 
@@ -22,14 +23,18 @@ class Helpers:
 
     def has_rocket_hit_obstacle(self) -> bool:
 
-        return has_hit_obstacle(self.history.rocket.location)
+        return self.has_hit_obstacle(
+            self.history.rocket.location, self.parameters.rocket.target_radius
+        )
 
-    def has_hit_obstacle(self, location: Coordinate) -> bool:
+    def has_hit_obstacle(
+        self, location: Coordinate, location_radius: float = 0.0
+    ) -> bool:
 
         for obstacle in self.parameters.environment.obstacles:
             if (
                 distance_between_coordinates(location, obstacle.location)
-                <= obstacle.radius
+                <= obstacle.radius + location_radius
             ):
                 return True
 
@@ -44,18 +49,18 @@ class Helpers:
 
         current_time = self.history.time
         min_firing_interval = self.parameters.turret.min_firing_interval
-
         return current_time - last_fired >= min_firing_interval
 
     def does_rocket_impact_turret(self):
 
-        target_radius = self.parameters.turret.target_radius
+        rocket_radius = self.parameters.rocket.target_radius
+        turret_radius = self.parameters.turret.target_radius
         rocket_location = self.history.rocket.location
         turret_location = self.parameters.turret.location
 
         return (
             distance_between_coordinates(rocket_location, turret_location)
-            <= target_radius
+            <= rocket_radius + turret_radius
         )
 
     def does_projectile_impact_rocket(self):
@@ -63,11 +68,7 @@ class Helpers:
         target_radius = self.parameters.rocket.target_radius
         rocket_location = self.history.rocket.location
 
-        for projectile in self.history.projectiles:
-            if not projectile.on_board:
-                continue
-
-            projectile_location = projectile.location
+        for projectile_location in self.get_active_projectile_locations():
             if (
                 distance_between_coordinates(rocket_location, projectile_location)
                 <= target_radius
@@ -83,3 +84,22 @@ class Helpers:
         timestep = self.parameters.time.timestep
 
         return current_time > max_game_time - timestep
+
+    def calc_projectile_location(self, projectile):
+
+        angle = projectile.firing_angle
+        velocity = self.parameters.turret.projectile_speed
+        initial_location = self.parameters.turret.location
+        launch_time = projectile.launch_time
+        current_time = self.history.time
+
+        dtime = current_time - launch_time
+
+        return PolarCoordinate(velocity * dtime, angle).pol2cart() + initial_location
+
+    def get_active_projectile_locations(self):
+
+        return [
+            self.calc_projectile_location(projectile)
+            for projectile in self.history.active_projectiles
+        ]

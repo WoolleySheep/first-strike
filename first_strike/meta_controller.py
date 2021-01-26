@@ -13,9 +13,16 @@ from player_controllers.turret_controller import (
     TurretController as PlayerTurretController,
 )
 
+
 class MetaController(Controller):
     def __init__(
-        self, parameters, history, physics, helpers, default_controller, player_controller
+        self,
+        parameters,
+        history,
+        physics,
+        helpers,
+        default_controller,
+        player_controller,
     ):
         super().__init__(parameters, history, physics, helpers)
         self.default_controller = default_controller(
@@ -26,20 +33,21 @@ class MetaController(Controller):
         )
         self.error = None
         self.inputs = None
+        self.inputs_valid = None
 
     def calc_inputs(self):
 
         try:
             self.inputs = self.player_controller.calc_inputs()
         except NotImplementedError:
-            try:
-                self.inputs = self.default_controller.calc_inputs()
-            except Exception as error:
-                self.error = error
+            # try:
+            self.inputs = self.default_controller.calc_inputs()
+            # except Exception as error:
+            # self.error = error
         except Exception as error:
             self.error = error
 
-    def inputs_valid(self):
+    def are_inputs_valid(self):
         raise NotImplementedError
 
     def store_inputs(self):
@@ -48,7 +56,12 @@ class MetaController(Controller):
     def process_inputs(self):
 
         self.calc_inputs()
-        if not self.error and self.inputs_valid:
+
+        if self.error:
+            return
+
+        self.inputs_valid = self.are_inputs_valid()
+        if self.inputs_valid:
             self.store_inputs()
 
 
@@ -63,8 +76,7 @@ class RocketMetaController(MetaController):
             PlayerRocketController,
         )
 
-    @property
-    def inputs_valid(self):
+    def are_inputs_valid(self):
 
         return (
             len(self.inputs) == 5
@@ -106,8 +118,7 @@ class TurretMetaController(MetaController):
             PlayerTurretController,
         )
 
-    @property
-    def inputs_valid(self):
+    def are_inputs_valid(self):
 
         max_rotation_speed = self.parameters.turret.max_rotation_speed
         return (

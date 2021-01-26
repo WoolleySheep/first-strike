@@ -2,7 +2,7 @@ import math
 
 from controller import Controller
 from coordinate_classes import Coordinate, PolarCoordinate
-from math_helpers import normalise_angle
+from math_helpers import normalise_angle, calc_minimum_distance_between
 
 
 class TurretController(Controller):
@@ -16,8 +16,8 @@ class TurretController(Controller):
 
         # TODO: Allow turret to fire if it will hit the rocket before the obstacle
         if (
-            self.will_projectile_hit_rocket()
-            and not self.will_projectile_hit_obstacle()
+            self.will_projectile_hit_rocket_within_bounds()
+            and self.will_projectile_hit_rocket_before_obstacle()
         ):
             return self.calc_rotation_velocity(), True
 
@@ -104,72 +104,69 @@ class TurretController(Controller):
             return intercept_angle
         return normalise_angle(math.pi - m - beta)
 
-    def will_projectile_hit_rocket(self):
+    def will_projectile_hit_rocket_within_bounds(self):
+
+        safety_buffer = 2.0
+
+        projectile_location = self.parameters.turret.location
+        projectile_speed = self.parameters.turret.projectile_speed
+        projectile_angle = self.history.turret.angle
+        projectile_velocity = PolarCoordinate(
+            projectile_speed, projectile_angle
+        ).pol2cart()
 
         rocket_location = self.history.rocket.location
         rocket_velocity = self.physics.calc_rocket_velocity()
 
-        turret_location = self.parameters.turret.location
-        projectile_speed = self.parameters.turret.projectile_speed
-        turret_angle = self.history.turret.angle
-        projectile_velocity = PolarCoordinate(projectile_speed, turret_angle).pol2cart()
-
-        target_radius = self.parameters.rocket.target_radius
-
-        return self.will_a_b_collide(
-            rocket_location,
-            rocket_velocity,
-            turret_location,
-            projectile_velocity,
-            target_radius / 2,
+        (
+            _,
+            dist_closest,
+            (rocket_closest_loc, projectile_closest_loc),
+        ) = calc_minimum_distance_between(
+            rocket_location, rocket_velocity, projectile_location, projectile_velocity
         )
 
-    def will_projectile_hit_obstacle(self):
+        return (
+            dist_closest <= self.parameters.rocket.target_radius / 2
+            and self.helpers.is_within_bounds(rocket_closest_loc)
+            and self.helpers.is_within_bounds(projectile_closest_loc)
+        )
 
-        turret_location = self.parameters.turret.location
+    def will_projectile_hit_rocket_before_obstacle(self):
+
+        projectile_location = self.parameters.turret.location
         projectile_speed = self.parameters.turret.projectile_speed
-        turret_angle = self.history.turret.angle
-        projectile_velocity = PolarCoordinate(projectile_speed, turret_angle).pol2cart()
+        projectile_angle = self.history.turret.angle
+        projectile_velocity = PolarCoordinate(
+            projectile_speed, projectile_angle
+        ).pol2cart()
+
+        rocket_location = self.history.rocket.location
+        rocket_velocity = self.physics.calc_rocket_velocity()
+
+        t_rocket, _, _ = calc_minimum_distance_between(
+            projectile_location, projectile_velocity, rocket_location, rocket_velocity
+        )
 
         for obstacle in self.parameters.environment.obstacles:
-            if self.will_a_b_collide(
+            (
+                t_obstacle,
+                dist_obstacle,
+                (projectile_loc, _),
+            ) = calc_minimum_distance_between(
+                projectile_location,
+                projectile_velocity,
                 obstacle.location,
                 Coordinate(0.0, 0.0),
-                turret_location,
-                projectile_velocity,
-                obstacle.radius,
+            )
+            if (
+                dist_obstacle <= obstacle.radius
+                and t_obstacle < t_rocket
+                and self.helpers.is_within_bounds(projectile_loc)
             ):
-                return True
+                return False
 
-        return False
-
-    @staticmethod
-    def will_a_b_collide(
-        location1, velocity1, location2, velocity2, max_collision_dist
-    ):
-
-        x1 = velocity2.x - velocity1.x
-        x2 = location2.x - location1.x
-        y1 = velocity2.y - velocity1.y
-        y2 = location2.y - location1.y
-
-        a = x1 ** 2 + y1 ** 2
-        b = 2 * (x1 * x2 + y1 * y2)
-        c = x2 ** 2 + y2 ** 2
-
-        try:
-            t_m = -b / (2 * a)  # Find time for local minima
-            if t_m < 0:  # If the minimum occurs in the past, set min time to 0
-                t_m = 0.0
-        except ZeroDivisionError:  # When rocket and projectile have exactly equal velocity
-            t_m = 0.0
-
-        try:
-            smallest_distance = math.sqrt(a * t_m ** 2 + b * t_m + c)
-        except ValueError:  # Float goes slightly below 0, breaking math.sqrt
-            smallest_distance = 0.0
-
-        return smallest_distance <= max_collision_dist
+        return True
 
     def calc_angle2rocket(self):
 

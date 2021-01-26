@@ -134,21 +134,18 @@ class TurretHistory:
 
     @property
     def last_fired(self) -> float:
-        if not self.when_fired:
+
+        try:
+            return self.when_fired[-1]
+        except IndexError:
             return
-        return self.when_fired[-1]
 
 
 @dataclass
 class ProjectileHistory:
-    locations: List[Coordinate]
     firing_angle: float
     launch_time: float
     on_board: bool
-
-    @property
-    def location(self) -> Coordinate:
-        return self.locations[-1]
 
 
 @dataclass
@@ -161,3 +158,7 @@ class History:
     @property
     def time(self) -> float:
         return self.timesteps[-1]
+
+    @property
+    def active_projectiles(self):
+        return [projectile for projectile in self.projectiles if projectile.on_board]
