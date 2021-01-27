@@ -91,6 +91,7 @@ class Movement:
 
         angles = self.history.turret.angles
         angles.append(normalise_angle(angles[-1] + d_theta))
+        # TODO: For some reason these values are not always normalised
 
     def update_the_time(self):
 

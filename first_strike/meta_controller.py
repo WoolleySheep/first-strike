@@ -1,4 +1,5 @@
 from controller import Controller
+from math_helpers import float_in_range
 
 from default_controllers.rocket_controller import (
     RocketController as DefaultRocketController,
@@ -81,10 +82,10 @@ class RocketMetaController(MetaController):
         return (
             len(self.inputs) == 5
             and all([type(input_) is float for input_ in self.inputs])
-            and 0 <= self.inputs[0] <= self.parameters.rocket.max_main_engine_force
+            and float_in_range(self.inputs[0], 0, self.parameters.rocket.max_main_engine_force)
             and all(
                 [
-                    0 <= input_ <= self.parameters.rocket.max_thruster_force
+                    float_in_range(input_, 0, self.parameters.rocket.max_thruster_force)
                     for input_ in self.inputs[1:]
                 ]
             )
@@ -124,7 +125,7 @@ class TurretMetaController(MetaController):
         return (
             len(self.inputs) == 2
             and type(self.inputs[0]) is float
-            and -max_rotation_speed <= self.inputs[0] <= max_rotation_speed
+            and float_in_range(self.inputs[0], -max_rotation_speed, max_rotation_speed)
             and type(self.inputs[1]) is bool
             and (not self.inputs[1] or self.helpers.can_turret_fire())
         )

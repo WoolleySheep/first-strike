@@ -191,22 +191,31 @@ class RocketController(Controller):
     def _calc_direction(self):
 
         turret_attraction_factor = 20
-        edge_avoidance_factor = 13
+        edge_avoidance_factor = 7
         all_obstacle_avoidance_factor = 2
         all_projectile_path_avoidance_factor = 2
-        intersecting_projectile_avoidance_factor = 7
-        intersecting_obstacle_avoidance_factor = 7
+        intersecting_obstacle_avoidance_factor = 10
+        intersecting_projectile_avoidance_factor = 10
         firing_path_avoidance_factor = 2
 
         turret_attraction = self._calc_turret_attraction()
         edge_avoidance = self._calc_edge_avoidance()
         all_obstacle_avoidance = self._calc_all_obstacle_avoidance()
         all_projectile_path_avoidance = self._calc_all_projectile_path_avoidance()
+        intersecting_obstacle_avoidance = self._calc_intersecting_obstacle_avoidance()
         intersecting_projectile_avoidance = (
             self._calc_intersecting_projectile_avoidance()
         )
-        intersecting_obstacle_avoidance = self._calc_intersecting_obstacle_avoidance()
         firing_path_avoidance = self._calc_firing_path_avoidance()
+
+        print("Turret attraction: ", turret_attraction)
+        print("edge_avoidance: ", edge_avoidance)
+        print("all_obstacle_avoidance: ", all_obstacle_avoidance)
+        print("all_projectile_path_avoidance: ", all_projectile_path_avoidance)
+        print("intersecting_obstacle_avoidance: ", intersecting_obstacle_avoidance)
+        print("intersecting_projectile_avoidance: ", intersecting_projectile_avoidance)
+        print("firing_path_avoidance: ", firing_path_avoidance)
+
 
         return (
             turret_attraction_factor * turret_attraction
@@ -223,6 +232,8 @@ class RocketController(Controller):
 
         direction = self._calc_direction()
 
+        print("direction angle: ", direction.angle)
+
         # Current velocity
         rocket_velocity = self.physics.calc_rocket_velocity()
         rocket_vel_angle = rocket_velocity.angle
@@ -233,13 +244,22 @@ class RocketController(Controller):
         )
         thrust_angle = thrust_direction.angle
 
+        print("Thrust angle: ", thrust_angle)
+
         rocket_angle = self.history.rocket.angle
         relative_thrust_angle = normalise_angle(thrust_angle - rocket_angle)
 
+        print("Relative thrust angle: ", relative_thrust_angle)
+
+        print("Rocket location: ", self.history.rocket.location)
+        print("Rocket angle: ", rocket_angle)
+        print("Rocket velocity: ", rocket_velocity)
+        print("Rocket angular velocity: ", self.physics.calc_rocket_angular_velocity())
+
         # If facing away from the turret, spin the rocket using the thrusters
         # Use PD controller
-        p_c = 1.0
-        d_c = -0.7
+        p_c = 5.0
+        d_c = -3.0
 
         # Derivative
         angular_vel = self.physics.calc_rocket_angular_velocity()
@@ -251,8 +271,11 @@ class RocketController(Controller):
             abs(control_signal) * max_thruster_force, max_thruster_force
         )
 
-        clockwise_thrust = [0.0, thruster_force][control_signal < 0]
-        anticlockwise_thrust = [0.0, thruster_force][control_signal >= 0]
+        clockwise_thrust = thruster_force if control_signal < 0 else 0.0
+        anticlockwise_thrust = thruster_force if control_signal >= 0 else 0.0
+
+        print("Clockwise thrust: ", clockwise_thrust)
+        print("Anticlockwise thrust: ", anticlockwise_thrust)
 
         rotational_outputs = [
             0.0,
@@ -269,17 +292,15 @@ class RocketController(Controller):
         right_thrusters_active = relative_thrust_angle >= 0
         thrusters_active = [left_thrusters_active] * 2 + [right_thrusters_active] * 2
 
-        engine_thruster_ratio = abs(math.tan(relative_thrust_angle))
-
-        max_main_engine_force = self.parameters.rocket.max_main_engine_force
+        engine_translation_force_ratio = [math.cos(relative_thrust_angle)] + [active * abs(math.sin(relative_thrust_angle)) / 2 for active in thrusters_active]
+        max_outputs = [self.parameters.rocket.max_main_engine_force] + [max_thruster_force] * 4
         try:
-            engine_outputs = [max_main_engine_force] + [
-                thrust / (2 * engine_thruster_ratio) for thrust in thrusters_active
-            ]
-        except ZeroDivisionError:  # Engine thruster ratio is 0; no need for lateral movement
-            return [max_main_engine_force] + rotational_outputs[1:]
+            engine_max_ratio = [max_output / force_ratio for max_output, force_ratio in zip (max_outputs, engine_translation_force_ratio)]
+        except ZeroDivisionError:
+            engine_max_ratio = [max_output / force_ratio for max_output, force_ratio in zip (max_outputs, engine_translation_force_ratio) if not math.isclose(force_ratio, 0.0)]
+        min_max_ratio = min(engine_max_ratio)
+        translation_engine_forces = [min_max_ratio * force_ratio for force_ratio in engine_translation_force_ratio]
 
-        max_outputs = [max_main_engine_force] + [max_thruster_force] * 4
         remaining_outputs = [
             max_thrust - rotational_thrust
             for max_thrust, rotational_thrust in zip(max_outputs, rotational_outputs)
@@ -288,13 +309,20 @@ class RocketController(Controller):
         try:
             output_ratios = [
                 output / remaining
-                for output, remaining in zip(engine_outputs, remaining_outputs)
+                for output, remaining in zip(translation_engine_forces, remaining_outputs)
             ]
         except ZeroDivisionError:  # Remaining thrust is 0; cannot manouver directionally
+            print("Engines no thrust: ", rotational_outputs)
             return rotational_outputs
 
         max_ratio = max(output_ratios)
-        directional_outputs = [output / max_ratio for output in engine_outputs]
+        directional_outputs = [output / max_ratio for output in translation_engine_forces]
+
+        print("Engines: ", [
+            rotation + direction
+            for rotation, direction in zip(rotational_outputs, directional_outputs)
+        ])
+        print("-----------------------------------------------------")
 
         return [
             rotation + direction
