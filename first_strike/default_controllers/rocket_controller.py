@@ -21,8 +21,17 @@ class RocketController(Controller):
 
     def _calc_edge_avoidance(self):
         def edge_repulsion(position, boundary):
-            # TODO: This will break if the rocket sits on the boundary
-            return 1 / (boundary / 2 + position) - 1 / (boundary / 2 - position)
+            try:
+                left_repulsion = 1 / (boundary / 2 + position)
+            except ZeroDivisionError:   # Sitting on left boundary
+                return float('inf')
+
+            try:
+                right_repulsion = - 1 / (boundary / 2 - position)
+            except ZeroDivisionError:   # Sitting on right boundary
+                return -float('inf')
+
+            return left_repulsion + right_repulsion
 
         rocket_location = self.history.rocket.location
         width = self.parameters.environment.width
