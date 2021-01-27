@@ -208,15 +208,6 @@ class RocketController(Controller):
         )
         firing_path_avoidance = self._calc_firing_path_avoidance()
 
-        print("Turret attraction: ", turret_attraction)
-        print("edge_avoidance: ", edge_avoidance)
-        print("all_obstacle_avoidance: ", all_obstacle_avoidance)
-        print("all_projectile_path_avoidance: ", all_projectile_path_avoidance)
-        print("intersecting_obstacle_avoidance: ", intersecting_obstacle_avoidance)
-        print("intersecting_projectile_avoidance: ", intersecting_projectile_avoidance)
-        print("firing_path_avoidance: ", firing_path_avoidance)
-
-
         return (
             turret_attraction_factor * turret_attraction
             + edge_avoidance_factor * edge_avoidance
@@ -232,8 +223,6 @@ class RocketController(Controller):
 
         direction = self._calc_direction()
 
-        print("direction angle: ", direction.angle)
-
         # Current velocity
         rocket_velocity = self.physics.calc_rocket_velocity()
         rocket_vel_angle = rocket_velocity.angle
@@ -244,17 +233,8 @@ class RocketController(Controller):
         )
         thrust_angle = thrust_direction.angle
 
-        print("Thrust angle: ", thrust_angle)
-
         rocket_angle = self.history.rocket.angle
         relative_thrust_angle = normalise_angle(thrust_angle - rocket_angle)
-
-        print("Relative thrust angle: ", relative_thrust_angle)
-
-        print("Rocket location: ", self.history.rocket.location)
-        print("Rocket angle: ", rocket_angle)
-        print("Rocket velocity: ", rocket_velocity)
-        print("Rocket angular velocity: ", self.physics.calc_rocket_angular_velocity())
 
         # If facing away from the turret, spin the rocket using the thrusters
         # Use PD controller
@@ -273,9 +253,6 @@ class RocketController(Controller):
 
         clockwise_thrust = thruster_force if control_signal < 0 else 0.0
         anticlockwise_thrust = thruster_force if control_signal >= 0 else 0.0
-
-        print("Clockwise thrust: ", clockwise_thrust)
-        print("Anticlockwise thrust: ", anticlockwise_thrust)
 
         rotational_outputs = [
             0.0,
@@ -312,17 +289,10 @@ class RocketController(Controller):
                 for output, remaining in zip(translation_engine_forces, remaining_outputs)
             ]
         except ZeroDivisionError:  # Remaining thrust is 0; cannot manouver directionally
-            print("Engines no thrust: ", rotational_outputs)
             return rotational_outputs
 
         max_ratio = max(output_ratios)
         directional_outputs = [output / max_ratio for output in translation_engine_forces]
-
-        print("Engines: ", [
-            rotation + direction
-            for rotation, direction in zip(rotational_outputs, directional_outputs)
-        ])
-        print("-----------------------------------------------------")
 
         return [
             rotation + direction

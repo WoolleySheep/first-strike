@@ -53,7 +53,7 @@ class Movement:
         locations.append(locations[-1] + updated_vel * timestep)
 
         angles = self.history.rocket.angles
-        angles.append(angles[-1] + updated_ang_vel * timestep)
+        angles.append(normalise_angle(angles[-1] + updated_ang_vel * timestep))
 
     def mark_projectiles_off_board(self):
 
@@ -91,7 +91,6 @@ class Movement:
 
         angles = self.history.turret.angles
         angles.append(normalise_angle(angles[-1] + d_theta))
-        # TODO: For some reason these values are not always normalised
 
     def update_the_time(self):
 
