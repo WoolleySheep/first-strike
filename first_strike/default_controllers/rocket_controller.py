@@ -23,13 +23,13 @@ class RocketController(Controller):
         def edge_repulsion(position, boundary):
             try:
                 left_repulsion = 1 / (boundary / 2 + position)
-            except ZeroDivisionError:   # Sitting on left boundary
-                return float('inf')
+            except ZeroDivisionError:  # Sitting on left boundary
+                return float("inf")
 
             try:
-                right_repulsion = - 1 / (boundary / 2 - position)
-            except ZeroDivisionError:   # Sitting on right boundary
-                return -float('inf')
+                right_repulsion = -1 / (boundary / 2 - position)
+            except ZeroDivisionError:  # Sitting on right boundary
+                return -float("inf")
 
             return left_repulsion + right_repulsion
 
@@ -86,8 +86,7 @@ class RocketController(Controller):
         return all_obstacle_avoidance
 
     def _calc_intersecting_projectile_avoidance(self):
-
-        safety_buffer = 2.0
+        # TODO: dist2intercept is zero sometimes; breaks the formula
 
         intersecting_projectile_avoidance = Coordinate(0.0, 0.0)
         for projectile in self.history.active_projectiles:
@@ -98,24 +97,18 @@ class RocketController(Controller):
             ) = self.controller_helpers.calc_minimum_distance_between_rocket_and_projectile(
                 projectile
             )
-            if dist <= safety_buffer * self.parameters.rocket.target_radius:
-                dist_between = self.controller_helpers.calc_dist_from_rocket2projectile(
-                    projectile
-                )
+            if dist <= self.parameters.rocket.target_radius:
+                dist2intercept = distance_between_coordinates(self.history.rocket.location, rocket_loc)
                 angle = (rocket_loc - projectile_loc).angle
                 intersecting_projectile_avoidance += PolarCoordinate(
-                    1
-                    / math.sqrt(
-                        dist * (dist_between - self.parameters.rocket.target_radius)
-                    ),
+                    1 / math.sqrt(dist * dist2intercept),
                     angle,
                 ).pol2cart()
 
         return intersecting_projectile_avoidance
 
     def _calc_intersecting_obstacle_avoidance(self):
-
-        safety_buffer = 2.0
+        # TODO: dist2intercept is zero sometimes; breaks the formula
 
         intersecting_obstacle_avoidance = Coordinate(0.0, 0.0)
         for obstacle in self.parameters.environment.obstacles:
@@ -126,23 +119,11 @@ class RocketController(Controller):
             ) = self.controller_helpers.calc_minimum_distance_between_rocket_and_obstacle(
                 obstacle
             )
-            if dist <= safety_buffer * (
-                obstacle.radius + self.parameters.rocket.target_radius
-            ):
-                dist_between = self.controller_helpers.calc_dist_from_rocket2obstacle(
-                    obstacle
-                )
+            if dist <= obstacle.radius + self.parameters.rocket.target_radius:
+                dist2intercept = distance_between_coordinates(self.history.rocket.location, rocket_loc)
                 angle = (rocket_loc - obstacle.location).angle
                 intersecting_obstacle_avoidance += PolarCoordinate(
-                    1
-                    / math.sqrt(
-                        dist
-                        * (
-                            dist_between
-                            - obstacle.radius
-                            - self.parameters.rocket.target_radius
-                        )
-                    ),
+                    1 / math.sqrt(dist * dist2intercept),
                     angle,
                 ).pol2cart()
 
@@ -278,14 +259,33 @@ class RocketController(Controller):
         right_thrusters_active = relative_thrust_angle >= 0
         thrusters_active = [left_thrusters_active] * 2 + [right_thrusters_active] * 2
 
-        engine_translation_force_ratio = [math.cos(relative_thrust_angle)] + [active * abs(math.sin(relative_thrust_angle)) / 2 for active in thrusters_active]
-        max_outputs = [self.parameters.rocket.max_main_engine_force] + [max_thruster_force] * 4
+        engine_translation_force_ratio = [math.cos(relative_thrust_angle)] + [
+            active * abs(math.sin(relative_thrust_angle)) / 2
+            for active in thrusters_active
+        ]
+        max_outputs = [self.parameters.rocket.max_main_engine_force] + [
+            max_thruster_force
+        ] * 4
         try:
-            engine_max_ratio = [max_output / force_ratio for max_output, force_ratio in zip (max_outputs, engine_translation_force_ratio)]
+            engine_max_ratio = [
+                max_output / force_ratio
+                for max_output, force_ratio in zip(
+                    max_outputs, engine_translation_force_ratio
+                )
+            ]
         except ZeroDivisionError:
-            engine_max_ratio = [max_output / force_ratio for max_output, force_ratio in zip (max_outputs, engine_translation_force_ratio) if not math.isclose(force_ratio, 0.0)]
+            engine_max_ratio = [
+                max_output / force_ratio
+                for max_output, force_ratio in zip(
+                    max_outputs, engine_translation_force_ratio
+                )
+                if not math.isclose(force_ratio, 0.0)
+            ]
         min_max_ratio = min(engine_max_ratio)
-        translation_engine_forces = [min_max_ratio * force_ratio for force_ratio in engine_translation_force_ratio]
+        translation_engine_forces = [
+            min_max_ratio * force_ratio
+            for force_ratio in engine_translation_force_ratio
+        ]
 
         remaining_outputs = [
             max_thrust - rotational_thrust
@@ -295,13 +295,17 @@ class RocketController(Controller):
         try:
             output_ratios = [
                 output / remaining
-                for output, remaining in zip(translation_engine_forces, remaining_outputs)
+                for output, remaining in zip(
+                    translation_engine_forces, remaining_outputs
+                )
             ]
         except ZeroDivisionError:  # Remaining thrust is 0; cannot manouver directionally
             return rotational_outputs
 
         max_ratio = max(output_ratios)
-        directional_outputs = [output / max_ratio for output in translation_engine_forces]
+        directional_outputs = [
+            output / max_ratio for output in translation_engine_forces
+        ]
 
         return [
             rotation + direction

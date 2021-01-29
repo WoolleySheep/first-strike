@@ -5,7 +5,12 @@ from coordinate_classes import Coordinate
 
 def float_in_range(value: float, lower_bound: float, upper_bound: float) -> bool:
 
-    return (lower_bound <= value <= upper_bound) or math.isclose(value, lower_bound) or math.isclose(value, upper_bound)
+    return (
+        (lower_bound <= value <= upper_bound)
+        or math.isclose(value, lower_bound)
+        or math.isclose(value, upper_bound)
+    )
+
 
 def normalise_angle(angle: float) -> float:
 

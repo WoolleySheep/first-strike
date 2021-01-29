@@ -82,7 +82,9 @@ class RocketMetaController(MetaController):
         return (
             len(self.inputs) == 5
             and all([type(input_) is float for input_ in self.inputs])
-            and float_in_range(self.inputs[0], 0, self.parameters.rocket.max_main_engine_force)
+            and float_in_range(
+                self.inputs[0], 0, self.parameters.rocket.max_main_engine_force
+            )
             and all(
                 [
                     float_in_range(input_, 0, self.parameters.rocket.max_thruster_force)
