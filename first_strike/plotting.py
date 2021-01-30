@@ -1,5 +1,6 @@
 import math
 import matplotlib.pyplot as plt
+import matplotlib.collections as collections
 
 from coordinate_classes import PolarCoordinate
 from math_helpers import normalise_angle
@@ -16,7 +17,7 @@ class Plotting:
             1, 2, gridspec_kw={"width_ratios": [5, 1]}
         )
 
-        self.obstacles = self.plot_obstacles()
+        self.plot_obstacles()
 
         (self.rocket_body,) = self.ax.plot([], c="g")
         (self.engine_bridge,) = self.ax.plot([], c="g")
@@ -26,7 +27,7 @@ class Plotting:
         (self.right_front_thrust,) = self.ax.plot([], c="r")
         (self.right_rear_thrust,) = self.ax.plot([], c="r")
 
-        self.turret_body = self.plot_turret_body()
+        self.plot_turret_body()
         (self.turret_barrel,) = self.ax.plot([], c="b")
 
         self.projectiles = self.ax.scatter([], [], c="k")
@@ -42,7 +43,6 @@ class Plotting:
     @property
     def plots(self):
         return [
-            self.obstacles,
             self.rocket_body,
             self.engine_bridge,
             self.main_engine_thrust,
@@ -50,7 +50,6 @@ class Plotting:
             self.left_rear_thrust,
             self.right_front_thrust,
             self.right_rear_thrust,
-            self.turret_body,
             self.turret_barrel,
             self.projectiles,
             self.charging,
@@ -90,22 +89,30 @@ class Plotting:
 
     def plot_obstacles(self):
 
-        x_values = [
-            obstacle.location.x for obstacle in self.parameters.environment.obstacles
+        obstacle_patches = [
+            plt.Circle((o.location.x, o.location.y), radius=o.radius, color="c")
+            for o in self.parameters.environment.obstacles
         ]
-        y_values = [
-            obstacle.location.y for obstacle in self.parameters.environment.obstacles
-        ]
-        return self.ax.scatter(x_values, y_values, c="y", marker="s")
+        self.ax.add_collection(
+            collections.PatchCollection(obstacle_patches, match_original=True)
+        )
 
     def plot_turret_body(self):
 
         location = self.parameters.turret.location
-        return self.ax.scatter([location.x], [location.y], c="b")
+        radius = self.parameters.turret.target_radius
+
+        turret_body_patch = plt.Circle(
+            (location.x, location.y), radius=radius, color="b"
+        )
+        self.ax.add_collection(
+            collections.PatchCollection([turret_body_patch], match_original=True)
+        )
 
     def plot_board(self):
 
-        self.set_alpha()
+        if self.result:
+            self.set_alpha()
 
         self.update_title()
 
@@ -116,8 +123,9 @@ class Plotting:
         self.plot_projectiles()
 
     def set_alpha(self):
+        # TODO: Currently not changing the alpha of the obstacle patches
 
-        for p in self.plots:
+        for p in self.plots + self.ax.collections:
             p.set_alpha(self.alpha)
 
     def update_title(self):
@@ -380,3 +388,7 @@ class Plotting:
         # the board drops to 0
         if active_projectile_locations:
             self.projectiles.set_offsets(active_projectile_locations)
+
+    def scale_object(self, radius: float):
+
+        return 100 * radius ** 2 / self.parameters.environment.width

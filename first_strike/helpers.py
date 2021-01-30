@@ -87,15 +87,20 @@ class Helpers:
 
     def calc_projectile_location(self, projectile):
 
-        angle = projectile.firing_angle
-        velocity = self.parameters.turret.projectile_speed
         initial_location = self.parameters.turret.location
         launch_time = projectile.launch_time
         current_time = self.history.time
 
         dtime = current_time - launch_time
 
-        return PolarCoordinate(velocity * dtime, angle).pol2cart() + initial_location
+        return self.calc_projectile_velocity(projectile) * dtime + initial_location
+
+    def calc_projectile_velocity(self, projectile):
+
+        angle = projectile.firing_angle
+        velocity = self.parameters.turret.projectile_speed
+
+        return PolarCoordinate(velocity, angle).pol2cart()
 
     def get_active_projectile_locations(self):
 

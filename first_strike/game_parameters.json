@@ -12,24 +12,32 @@
     },
     "environment": 
     {   
-        "width": 350.0, 
-        "height": 350.0,
+        "width": 400.0, 
+        "height": 400.0,
         "obstacles": 
         [
             {
-                "location": [50.0, 50.0], 
+                "location": [0.0, 50.0], 
+                "radius": 20.0
+            },
+            {
+                "location": [100.0, 80.0], 
                 "radius": 5.0
             },
             {
-                "location": [-50.0, 25.0], 
-                "radius": 5.0
+                "location": [-20.0, -70.0], 
+                "radius": 10.0
             },
             {
-                "location": [-10.0, -40.0], 
-                "radius": 5.0
+                "location": [-100.0, 100.0], 
+                "radius": 10.0
             },
             {
-                "location": [-100.0, -120.0], 
+                "location": [0.0, -120.0], 
+                "radius": 15.0
+            },
+            {
+                "location": [70.0, -50.0], 
                 "radius": 5.0
             }
         ]
@@ -37,7 +45,7 @@
     "time": 
     {
         "timestep": 0.01, 
-        "max_game_time": 120.0
+        "max_game_time": 60.0
     },
     "rocket":
     {
@@ -46,16 +54,16 @@
         "length": 5.0,
         "max_main_engine_force": 5000.0,
         "max_thruster_force": 500.0,
-        "start_location": [0.0, 80.0],
+        "start_location": [-100.0, -120.0],
         "start_angle": 0.0
     },
     "turret":
     {
-        "location": [-60.0, -60.0],
+        "location": [0.0, 0.0],
         "start_angle": 0.0,
-        "target_radius": 7.0,
+        "target_radius": 5.0,
         "max_rotation_speed": 1.0,
-        "projectile_speed": 50.0,
-        "min_firing_interval": 0.3
+        "projectile_speed": 60.0,
+        "min_firing_interval": 0.5
     }
 }

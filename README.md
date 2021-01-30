@@ -3,9 +3,7 @@
 
 ### TODO
 * Reformat rocket controller
-* Make sub-optimal moves if you're about to die; avoiding obstacles/projectiles
 * Check game_data hasn't been tampered with between turns
-* Display obstacles as real size
 * Move engine names from animation to rocket parameters
 * Test for controller execution time
 * Fix "projectiles not disappearing when off board" problem
