@@ -1,8 +1,5 @@
-import math
-
 from coordinate_classes import Coordinate, PolarCoordinate
-from game_classes import ProjectileHistory
-from math_helpers import normalise_angle, distance_between_coordinates
+from math_helpers import distance_between_coordinates
 
 
 class Helpers:

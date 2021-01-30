@@ -112,14 +112,14 @@ class RelativeObjects:
 
     @property
     def distance(self):
-        return distance_between_coordinates(object_a_location, object_b_location)
+        return distance_between_coordinates(self.object_a_location, self.object_b_location)
 
     @property
     def angle_a2b(self):
-        return angle_from_a2b(object_a_location, object_b_location)
+        return angle_from_a2b(self.object_a_location, self.object_b_location)
 
     def angle_b2a(self):
-        return angle_from_a2b(object_b_location, object_a_location)
+        return angle_from_a2b(self.object_b_location, self.object_a_location)
 
     def minimum_distance_between_objects(self):
 
@@ -130,7 +130,7 @@ class RelativeObjects:
 
         a = x1 ** 2 + y1 ** 2
         b = 2 * (x1 * x2 + y1 * y2)
-        c = x2 ** 2 + y2 ** 2
+        # c = x2 ** 2 + y2 ** 2  (Not required)
 
         try:
             time_min_dist = -b / (2 * a)  # Find time for local minima

@@ -1,10 +1,9 @@
 import math
 
 from controller import Controller
-from coordinate_classes import Coordinate, PolarCoordinate
+from coordinate_classes import PolarCoordinate
 from math_helpers import (
     normalise_angle,
-    calc_when_minimum_distance_between_objects,
     RelativeObjects,
 )
 

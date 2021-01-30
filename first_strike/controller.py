@@ -5,7 +5,7 @@ from physics import Physics
 
 
 class Controller:
-    def __init__(self, parameters, history, physics, helpers):
+    def __init__(self, parameters: Parameters, history: History, physics: Physics, helpers: Helpers):
         self.parameters = parameters
         self.history = history
         self.physics = physics

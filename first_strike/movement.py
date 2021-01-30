@@ -1,6 +1,5 @@
 import math
 
-from coordinate_classes import PolarCoordinate
 from game_classes import ProjectileHistory
 from math_helpers import normalise_angle
 
@@ -74,7 +73,6 @@ class Movement:
 
     def fire_a_projectile(self):
 
-        turret_location = self.parameters.turret.location
         launch_angle = self.history.turret.angle
         current_time = self.history.time
 

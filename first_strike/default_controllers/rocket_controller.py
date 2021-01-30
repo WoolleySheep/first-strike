@@ -1,5 +1,4 @@
 import math
-import time
 
 from controller import Controller
 from coordinate_classes import Coordinate, PolarCoordinate
@@ -272,7 +271,7 @@ class RocketController(Controller):
 
         a = 1 + gradient ** 2
         b = 2 * (gradient * (y_intercept - y) - x)
-        c = x ** 2 + (y_intercept - y) ** 2
+        # c = x ** 2 + (y_intercept - y) ** 2   (Not required)
 
         line_x_min_dist = -b / (2 * a)
         line_y_min_dist = gradient * line_x_min_dist + y_intercept
@@ -283,7 +282,6 @@ class RocketController(Controller):
     def _calc_projectile_path_avoidance(self):
 
         rocket_location = self.history.rocket.location
-        rocket_velocity = self.physics.calc_rocket_velocity()
         turret_location = self.parameters.turret.location
 
         projectile_path_avoidance = []
@@ -482,7 +480,6 @@ class RocketController(Controller):
 
         # Current velocity
         rocket_velocity = self.physics.calc_rocket_velocity()
-        rocket_vel_angle = rocket_velocity.angle
 
         direction_velocity_ratio = 140.0
 
