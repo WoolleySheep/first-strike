@@ -24,11 +24,23 @@ class AnimationParameters:
     def thruster_labels(self) -> List[str]:
         return self.engine_labels[1:]
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 @dataclass
 class ObstacleParameters:
     location: Coordinate
     radius: float
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 @dataclass
@@ -41,11 +53,23 @@ class EnvironmentParameters:
     def board_area(self) -> float:
         return self.width * self.height
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 @dataclass
 class TimeParameters:
     timestep: float
     max_game_time: float
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 @dataclass
@@ -60,6 +84,12 @@ class RocketParameters:
     def moment_of_inertia(self) -> float:
         return (1 / 12) * self.mass * self.length ** 2
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 @dataclass
 class TurretParameters:
@@ -69,6 +99,12 @@ class TurretParameters:
     projectile_speed: float
     min_firing_interval: float
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 @dataclass
 class Parameters:
@@ -77,6 +113,12 @@ class Parameters:
     time: TimeParameters
     rocket: RocketParameters
     turret: TurretParameters
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 @dataclass
@@ -117,6 +159,12 @@ class RocketHistory:
     def right_rear_thruster_force(self) -> float:
         return self.right_rear_thruster_forces[-1]
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 @dataclass
 class TurretHistory:
@@ -140,12 +188,24 @@ class TurretHistory:
         except IndexError:
             return
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 @dataclass
 class ProjectileHistory:
     firing_angle: float
     launch_time: float
     on_board: bool
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 @dataclass
@@ -162,3 +222,9 @@ class History:
     @property
     def active_projectiles(self):
         return [projectile for projectile in self.projectiles if projectile.on_board]
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

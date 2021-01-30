@@ -3,9 +3,7 @@
 
 ### TODO
 * Reformat rocket controller
-* Check game_data hasn't been tampered with between turns
 * Move engine names from animation to rocket parameters
-* Test for controller execution time
 * Fix "projectiles not disappearing when off board" problem
 * Add typing and docstrings
 * Write "how to play"

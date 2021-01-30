@@ -44,7 +44,7 @@
     }, 
     "time": 
     {
-        "timestep": 0.01, 
+        "timestep": 0.05, 
         "max_game_time": 60.0
     },
     "rocket":
@@ -64,6 +64,6 @@
         "target_radius": 5.0,
         "max_rotation_speed": 1.0,
         "projectile_speed": 60.0,
-        "min_firing_interval": 0.5
+        "min_firing_interval": 0.7
     }
 }

@@ -60,6 +60,12 @@ class Coordinate:
     def __repr__(self):
         return f"{self.__class__.__name__}({self.x}, {self.y})"
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     @property
     def magnitude(self):
         return math.sqrt(self.x ** 2 + self.y ** 2)
@@ -85,3 +91,9 @@ class PolarCoordinate:
         y = self.r * math.sin(self.theta)
 
         return Coordinate(x, y)
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

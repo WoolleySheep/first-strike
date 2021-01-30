@@ -58,7 +58,7 @@ class Animation:
         for _ in range(self._ntimesteps_per_frame_refresh()):
             if not self.result:
                 self.controllers.process_inputs()
-            if not self.result:
+            if not self.result and not self.controllers.issue_raised:
                 self.movement.move_objects()
                 self.determine_winner.check_win_conditions()
 

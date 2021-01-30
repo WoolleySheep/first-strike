@@ -30,8 +30,11 @@ class TurretController(Controller):
     def calc_rotation_velocity(self):
 
         firing_angle = self.controller_helpers.firing_angle2hit_rocket()
-        if firing_angle is None:
-            firing_angle = self.calc_angle2rocket()
+        angle2rocket = self.calc_angle2rocket()
+        if firing_angle is None or abs(firing_angle - angle2rocket) > math.pi / 2:
+            firing_angle = (
+                angle2rocket  # If firing angle is at > 90 deg, aim for the rocket
+            )
 
         delta_angle = normalise_angle(firing_angle - self.history.turret.angle)
         abs_rotation_speed = min(

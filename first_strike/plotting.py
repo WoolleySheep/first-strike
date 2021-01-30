@@ -142,13 +142,41 @@ class Plotting:
             print(f"Rocket error: {rocket_controller.error}")
             print(f"Turret error: {turret_controller.error}")
 
-        if not rocket_controller.inputs_valid or not turret_controller.inputs_valid:
+        if (
+            rocket_controller.inputs_valid is False
+            or turret_controller.inputs_valid is False
+        ):
+            # Don't want to log if an input_valid is None
             print("Rocket inputs")
             print(f"    Valid: {rocket_controller.inputs_valid}")
             print(f"    Values: {rocket_controller.inputs}")
             print("Turret inputs")
             print(f"    Valid: {turret_controller.inputs_valid}")
             print(f"    Values: {turret_controller.inputs}")
+
+        if (
+            rocket_controller.execution_time_exceeded
+            or turret_controller.execution_time_exceeded
+        ):
+            print(f"Rocket execution time: {rocket_controller.execution_time} sec")
+            print(f"Turret execution time: {turret_controller.execution_time} sec")
+
+        elif not rocket_controller.inputs_valid and not turret_controller.inputs_valid:
+            self.title = "DRAW: Both sets of inputs are invalid"
+        elif not rocket_controller.inputs_valid:
+            self.title = "TURRET WIN: Rocket inputs invalid"
+        elif not turret_controller.inputs_valid:
+            self.title = "ROCKET WIN: Turret inputs invalid"
+
+        if (
+            rocket_controller.execution_time_exceeded
+            and turret_controller.execution_time_exceeded
+        ):
+            self.title = "DRAW: Both controllers exceeded allowed execution time"
+        elif rocket_controller.execution_time_exceeded:
+            self.title = "TURRET WIN: Rocket controller exceeded allowed execution time"
+        elif turret_controller.execution_time_exceeded:
+            self.title = "ROCKET WIN: Turret controller exceeded allowed execution time"
 
         if rocket_controller.error and turret_controller.error:
             self.title = "DRAW: Both controllers failed simultaneously"
@@ -157,12 +185,10 @@ class Plotting:
         elif turret_controller.error:
             self.title = "ROCKET WIN: Turret controller failed"
 
-        elif not rocket_controller.inputs_valid and not turret_controller.inputs_valid:
-            self.title = "DRAW: Both sets of inputs are invalid"
-        elif not rocket_controller.inputs_valid:
-            self.title = "TURRET WIN: Rocket inputs invalid"
-        elif not turret_controller.inputs_valid:
-            self.title = "ROCKET WIN: Turret inputs invalid"
+        if rocket_controller.state_changed:
+            self.title = "TURRET WIN: Rocket controller tampered with the game"
+        elif turret_controller.state_changed:
+            self.title = "ROCKET WIN: Turret controller tampered with the game"
 
         current_time = self.history.time
         self.fig.suptitle(self.title + f" ({current_time:.1f}s)")

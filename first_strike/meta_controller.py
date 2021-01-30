@@ -1,3 +1,6 @@
+from copy import deepcopy
+import time
+
 from controller import Controller
 from math_helpers import float_in_range
 
@@ -22,6 +25,7 @@ class MetaController(Controller):
         history,
         physics,
         helpers,
+        state_copy,
         default_controller,
         player_controller,
     ):
@@ -32,21 +36,37 @@ class MetaController(Controller):
         self.player_controller = player_controller(
             parameters, history, physics, helpers
         )
+        self.parameters = parameters
+        self.state_copy = state_copy
         self.error = None
+        self.execution_time = None
+        self.state_changed = None
         self.inputs = None
         self.inputs_valid = None
 
+    @property
+    def issue_raised(self):
+        return (
+            self.error
+            or self.state_changed
+            or not self.inputs_valid
+            or self.execution_time_exceeded
+        )
+
     def calc_inputs(self):
 
+        start_time = time.time()
         try:
             self.inputs = self.player_controller.calc_inputs()
         except NotImplementedError:
-            # try:
-            self.inputs = self.default_controller.calc_inputs()
-            # except Exception as error:
-            # self.error = error
+            try:
+                self.inputs = self.default_controller.calc_inputs()
+            except Exception as error:
+                self.error = error
         except Exception as error:
             self.error = error
+
+        self.execution_time = time.time() - start_time
 
     def are_inputs_valid(self):
         raise NotImplementedError
@@ -54,32 +74,45 @@ class MetaController(Controller):
     def store_inputs(self):
         raise NotImplementedError
 
+    @property
+    def execution_time_exceeded(self):
+        if self.execution_time is None:
+            return None
+
+        return self.execution_time > self.parameters.time.timestep
+
+    def is_state_changed(self):
+
+        self.state_changed = (
+            self.state_copy[0] != self.parameters or self.state_copy[1] != self.history
+        )
+
     def process_inputs(self):
 
         self.calc_inputs()
-
-        if self.error:
+        if self.error or self.execution_time_exceeded:
             return
 
-        self.inputs_valid = self.are_inputs_valid()
-        if self.inputs_valid:
-            self.store_inputs()
+        self.is_state_changed()
+        if not self.state_changed:
+            self.are_inputs_valid()
 
 
 class RocketMetaController(MetaController):
-    def __init__(self, parameters, history, physics, helpers):
+    def __init__(self, parameters, history, physics, helpers, state_copy):
         super().__init__(
             parameters,
             history,
             physics,
             helpers,
+            state_copy,
             DefaultRocketController,
             PlayerRocketController,
         )
 
     def are_inputs_valid(self):
 
-        return (
+        self.inputs_valid = (
             len(self.inputs) == 5
             and all((type(input_) is float for input_ in self.inputs))
             and float_in_range(
@@ -111,12 +144,13 @@ class RocketMetaController(MetaController):
 
 
 class TurretMetaController(MetaController):
-    def __init__(self, parameters, history, physics, helpers):
+    def __init__(self, parameters, history, physics, helpers, state_copy):
         super().__init__(
             parameters,
             history,
             physics,
             helpers,
+            state_copy,
             DefaultTurretController,
             PlayerTurretController,
         )
@@ -124,7 +158,7 @@ class TurretMetaController(MetaController):
     def are_inputs_valid(self):
 
         max_rotation_speed = self.parameters.turret.max_rotation_speed
-        return (
+        self.inputs_valid = (
             len(self.inputs) == 2
             and type(self.inputs[0]) is float
             and float_in_range(self.inputs[0], -max_rotation_speed, max_rotation_speed)
@@ -143,23 +177,37 @@ class TurretMetaController(MetaController):
 
 class Controllers:
     def __init__(self, parameters, history, physics, helpers):
+        self.parameters = parameters
+        self.history = history
+        self.state_copy = [None, None]
         self.rocket_controller = RocketMetaController(
-            parameters, history, physics, helpers
+            parameters, history, physics, helpers, self.state_copy
         )
         self.turret_controller = TurretMetaController(
-            parameters, history, physics, helpers
+            parameters, history, physics, helpers, self.state_copy
         )
 
     @property
-    def error_occured(self):
+    def issue_raised(self):
         return (
-            self.rocket_controller.error
-            or self.turret_controller.error
-            or not self.rocket_controller.inputs_valid
-            or not self.turret_controller.inputs_valid
+            self.rocket_controller.issue_raised or self.turret_controller.issue_raised
         )
+
+    def store_state_copy(self):
+
+        self.state_copy[0] = deepcopy(self.parameters)
+        self.state_copy[1] = deepcopy(self.history)
 
     def process_inputs(self):
 
+        self.store_state_copy()
+
         self.rocket_controller.process_inputs()
+        if self.rocket_controller.state_changed:
+            return
+
         self.turret_controller.process_inputs()
+
+        if not self.issue_raised:
+            self.rocket_controller.store_inputs()
+            self.turret_controller.store_inputs()
