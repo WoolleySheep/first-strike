@@ -267,21 +267,20 @@ class RocketController(Controller):
             max_thruster_force
         ] * 4
         try:
-            engine_max_ratio = [
+            min_max_ratio = min((
                 max_output / force_ratio
                 for max_output, force_ratio in zip(
                     max_outputs, engine_translation_force_ratio
                 )
-            ]
+            ))
         except ZeroDivisionError:
-            engine_max_ratio = [
+            min_max_ratio = min((
                 max_output / force_ratio
                 for max_output, force_ratio in zip(
                     max_outputs, engine_translation_force_ratio
                 )
                 if not math.isclose(force_ratio, 0.0)
-            ]
-        min_max_ratio = min(engine_max_ratio)
+            ))
         translation_engine_forces = [
             min_max_ratio * force_ratio
             for force_ratio in engine_translation_force_ratio
@@ -293,18 +292,18 @@ class RocketController(Controller):
         ]
 
         try:
-            output_ratios = [
+
+            max_output_ratio = max((
                 output / remaining
                 for output, remaining in zip(
                     translation_engine_forces, remaining_outputs
                 )
-            ]
+            ))
         except ZeroDivisionError:  # Remaining thrust is 0; cannot manouver directionally
             return rotational_outputs
 
-        max_ratio = max(output_ratios)
         directional_outputs = [
-            output / max_ratio for output in translation_engine_forces
+            output / max_output_ratio for output in translation_engine_forces
         ]
 
         return [

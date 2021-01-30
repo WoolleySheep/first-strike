@@ -14,7 +14,6 @@ class TurretController(Controller):
         if not self.helpers.can_turret_fire():
             return self.calc_rotation_velocity(), False
 
-        # TODO: Allow turret to fire if it will hit the rocket before the obstacle
         if (
             self.will_projectile_hit_rocket_within_bounds()
             and self.will_projectile_hit_rocket_before_obstacle()

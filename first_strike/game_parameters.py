@@ -47,7 +47,7 @@ def _is_list_type(my_list, length, element_type):
     return (
         type(my_list) is list
         and len(my_list) == length
-        and all([type(e) is element_type for e in my_list])
+        and all((type(e) is element_type for e in my_list))
     )
 
 
@@ -84,16 +84,16 @@ def _validate_game_parameters(game_params):
     assert _is_positive_float(environment["width"])
     assert _is_positive_float(environment["height"])
     assert all(
-        [
-            all([type(i) is float for i in obstacle["location"]])
+        (
+            all((type(i) is float for i in obstacle["location"]))
             for obstacle in environment["obstacles"]
-        ]
+        )
     )
     assert all(
-        [
+        (
             _is_positive_float(obstacle["radius"])
             for obstacle in environment["obstacles"]
-        ]
+        )
     )
 
     time = game_params["time"]
@@ -135,22 +135,22 @@ def _validate_game_parameters(game_params):
         > turret["target_radius"]
     )
     assert all(
-        [
+        (
             distance_between_coordinates(
                 Coordinate(rocket["start_location"]), Coordinate(obstacle["location"])
             )
             > obstacle["radius"]
             for obstacle in environment["obstacles"]
-        ]
+        )
     )
     assert all(
-        [
+        (
             distance_between_coordinates(
                 Coordinate(turret["location"]), Coordinate(obstacle["location"])
             )
             > obstacle["radius"]
             for obstacle in environment["obstacles"]
-        ]
+        )
     )
 
 
