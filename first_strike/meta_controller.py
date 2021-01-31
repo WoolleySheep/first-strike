@@ -55,17 +55,22 @@ class MetaController(Controller):
 
     def calc_inputs(self):
 
+        catch_errors = True  # True for real games
+        active_controller = "default"
+
+        controller = (
+            self.default_controller
+            if active_controller == "default"
+            else self.player_controller
+        )
+
         start_time = time.time()
         try:
-            self.inputs = self.player_controller.calc_inputs()
-        except NotImplementedError:
-            try:
-                self.inputs = self.default_controller.calc_inputs()
-            except Exception as error:
-                self.error = error
+            self.inputs = controller.calc_inputs()
         except Exception as error:
             self.error = error
-
+            if not catch_errors:
+                raise
         self.execution_time = time.time() - start_time
 
     def are_inputs_valid(self):

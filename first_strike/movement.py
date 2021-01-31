@@ -92,6 +92,4 @@ class Movement:
 
     def update_the_time(self):
 
-        timesteps = self.history.timesteps
-        timestep_duration = self.parameters.time.timestep
-        timesteps.append(timesteps[-1] + timestep_duration)
+        self.history.time += self.parameters.time.timestep

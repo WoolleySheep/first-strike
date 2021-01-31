@@ -213,11 +213,7 @@ class History:
     rocket: RocketHistory
     turret: TurretHistory
     projectiles: List[ProjectileHistory] = field(default_factory=list)
-    timesteps: List[float] = field(default_factory=lambda: [0.0])
-
-    @property
-    def time(self) -> float:
-        return self.timesteps[-1]
+    time: float = 0.0
 
     @property
     def active_projectiles(self):

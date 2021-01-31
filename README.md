@@ -3,8 +3,11 @@
 
 ### TODO
 * Reformat rocket controller
+* Allow for exception catching and default/player controller use to be set seperately for rocket and turret
 * Move engine names from animation to rocket parameters
+* Move a lot of hardcoded parameters to the parameters json
 * Fix "projectiles not disappearing when off board" problem
+* Random board generator
 * Add typing and docstrings
 * Write "how to play"
 ### Description

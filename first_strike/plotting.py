@@ -131,12 +131,44 @@ class Plotting:
     def update_title(self):
 
         if self.result:
-            current_time = self.history.time
-            self.fig.suptitle(self.title + f" ({current_time:.1f}s)")
+            self._set_title()
             return
 
         rocket_controller = self.controllers.rocket_controller
         turret_controller = self.controllers.turret_controller
+
+        self.print_logs_if_controller_issue_raised()
+
+        self.update_title_if_controller_issue_raised()
+
+        self._set_title()
+
+    def _set_title(self):
+
+        current_time = self.history.time
+        self.fig.suptitle(self.title + f" ({current_time:.1f}s)")
+
+    def print_logs_if_controller_issue_raised(self):
+
+        rocket_controller = self.controllers.rocket_controller
+        turret_controller = self.controllers.turret_controller
+
+        if rocket_controller.state_changed or turret_controller.state_changed:
+            print("Rocket tampering: ", rocket_controller.state_changed)
+            print("Turret tampering: ", turret_controller.state_changed)
+            if self.controllers.state_copy[0] != self.parameters:
+                print("Game parameters modified")
+                print("Before controller execution:")
+                print(self.controllers.state_copy[0])
+                print("After controller execution:")
+                print(self.parameters)
+
+            if self.controllers.state_copy[1] != self.history:
+                print("Game history modified")
+                print("Before controller execution:")
+                print(self.controllers.state_copy[1])
+                print("After controller execution:")
+                print(self.history)
 
         if rocket_controller.error or turret_controller.error:
             print(f"Rocket error: {rocket_controller.error}")
@@ -161,37 +193,67 @@ class Plotting:
             print(f"Rocket execution time: {rocket_controller.execution_time} sec")
             print(f"Turret execution time: {turret_controller.execution_time} sec")
 
-        elif not rocket_controller.inputs_valid and not turret_controller.inputs_valid:
-            self.title = "DRAW: Both sets of inputs are invalid"
-        elif not rocket_controller.inputs_valid:
-            self.title = "TURRET WIN: Rocket inputs invalid"
-        elif not turret_controller.inputs_valid:
-            self.title = "ROCKET WIN: Turret inputs invalid"
+    def update_title_if_controller_issue_raised(self):
+
+        self._title_update_state_changed()
+
+        if self.result:
+            return
+
+        self._title_update_error()
+
+        if self.result:
+            return
+
+        self._title_update_execution_time_exceeded()
+
+        if self.result:
+            return
+
+        self._title_update_inputs_invalid()
+
+    def _title_update_inputs_invalid(self):
 
         if (
-            rocket_controller.execution_time_exceeded
-            and turret_controller.execution_time_exceeded
+            not self.controllers.rocket_controller.inputs_valid
+            and not self.controllers.turret_controller.inputs_valid
+        ):
+            self.title = "DRAW: Both sets of inputs are invalid"
+        elif not self.controllers.rocket_controller.inputs_valid:
+            self.title = "TURRET WIN: Rocket inputs invalid"
+        elif not self.controllers.turret_controller.inputs_valid:
+            self.title = "ROCKET WIN: Turret inputs invalid"
+
+    def _title_update_execution_time_exceeded(self):
+
+        if (
+            self.controllers.rocket_controller.execution_time_exceeded
+            and self.controllers.turret_controller.execution_time_exceeded
         ):
             self.title = "DRAW: Both controllers exceeded allowed execution time"
-        elif rocket_controller.execution_time_exceeded:
+        elif self.controllers.rocket_controller.execution_time_exceeded:
             self.title = "TURRET WIN: Rocket controller exceeded allowed execution time"
-        elif turret_controller.execution_time_exceeded:
+        elif self.controllers.turret_controller.execution_time_exceeded:
             self.title = "ROCKET WIN: Turret controller exceeded allowed execution time"
 
-        if rocket_controller.error and turret_controller.error:
+    def _title_update_error(self):
+
+        if (
+            self.controllers.rocket_controller.error
+            and self.controllers.turret_controller.error
+        ):
             self.title = "DRAW: Both controllers failed simultaneously"
-        elif rocket_controller.error:
+        elif self.controllers.rocket_controller.error:
             self.title = "TURRET WIN: Rocket controller failed"
-        elif turret_controller.error:
+        elif self.controllers.turret_controller.error:
             self.title = "ROCKET WIN: Turret controller failed"
 
-        if rocket_controller.state_changed:
-            self.title = "TURRET WIN: Rocket controller tampered with the game"
-        elif turret_controller.state_changed:
-            self.title = "ROCKET WIN: Turret controller tampered with the game"
+    def _title_update_state_changed(self):
 
-        current_time = self.history.time
-        self.fig.suptitle(self.title + f" ({current_time:.1f}s)")
+        if self.controllers.rocket_controller.state_changed:
+            self.title = "TURRET WIN: Rocket controller tampered with the game"
+        elif self.controllers.turret_controller.state_changed:
+            self.title = "ROCKET WIN: Turret controller tampered with the game"
 
     def plot_charging(self):
 

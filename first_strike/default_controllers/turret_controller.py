@@ -19,8 +19,7 @@ class TurretController(Controller):
 
         if (
             self.will_projectile_hit_rocket_within_bounds()
-            and (before_obstacle := self.will_projectile_hit_rocket_before_obstacle())
-            and before_obstacle is not None
+            and self.will_projectile_hit_rocket_before_obstacle()
         ):
             return self.calc_rotation_velocity(), True
 
@@ -93,7 +92,7 @@ class TurretController(Controller):
             self.parameters.rocket.target_radius
         )
         if rocket_output is None:
-            return None
+            return False  # Doesn't hit rocket at all
         time_rocket_intercept, *_ = rocket_output
 
         for obstacle in self.parameters.environment.obstacles:

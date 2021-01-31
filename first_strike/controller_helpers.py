@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 import math
 
-from coordinate_classes import Coordinate, PolarCoordinate
-from game_classes import Parameters, History, ProjectileHistory, ObstacleParameters
+from coordinate_classes import PolarCoordinate
+from game_classes import Parameters, History, ObstacleParameters
 from math_helpers import normalise_angle
 from physics import Physics
 from helpers import Helpers

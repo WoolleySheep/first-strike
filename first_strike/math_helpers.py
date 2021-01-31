@@ -40,63 +40,6 @@ def average(values):
     return sum(values) / len(values)
 
 
-def calc_when_minimum_distance_between_objects(
-    location1, velocity1, location2, velocity2
-):
-
-    x1 = velocity2.x - velocity1.x
-    x2 = location2.x - location1.x
-    y1 = velocity2.y - velocity1.y
-    y2 = location2.y - location1.y
-
-    a = x1 ** 2 + y1 ** 2
-    b = 2 * (x1 * x2 + y1 * y2)
-    c = x2 ** 2 + y2 ** 2
-
-    try:
-        t_m = -b / (2 * a)  # Find time for local minima
-        if t_m < 0:  # If the minimum occurs in the past, set min time to 0
-            t_m = 0.0
-    except ZeroDivisionError:  # When rocket and projectile have exactly equal velocity
-        t_m = 0.0
-
-    location1_at_tm = location1 + velocity1 * t_m
-    location2_at_tm = location2 + velocity2 * t_m
-
-    smallest_dist = distance_between_coordinates(location1_at_tm, location2_at_tm)
-
-    return t_m, smallest_dist, (location1_at_tm, location2_at_tm)
-
-
-def calc_when_distance_between_objects(
-    location1, velocity1, location2, velocity2, distance
-):
-
-    x1 = velocity2.x - velocity1.x
-    x2 = location2.x - location1.x
-    y1 = velocity2.y - velocity1.y
-    y2 = location2.y - location1.y
-
-    a = x1 ** 2 + y1 ** 2
-    b = 2 * (x1 * x2 + y1 * y2)
-    c = x2 ** 2 + y2 ** 2 - distance ** 2
-
-    det = b ** 2 - 4 * a * c
-
-    if det < 0:
-        return None  # Distance is always greater
-
-    t1 = (-b - math.sqrt(det)) / (2 * a)
-    t2 = (-b + math.sqrt(det)) / (2 * a)
-
-    t = min(t1, t2)
-
-    location1_at_t = location1 + velocity1 * t
-    location2_at_t = location2 + velocity2 * t
-
-    return t, (location1_at_t, location2_at_t)
-
-
 class RelativeObjects:
     def __init__(
         self,
@@ -112,7 +55,9 @@ class RelativeObjects:
 
     @property
     def distance(self):
-        return distance_between_coordinates(self.object_a_location, self.object_b_location)
+        return distance_between_coordinates(
+            self.object_a_location, self.object_b_location
+        )
 
     @property
     def angle_a2b(self):
