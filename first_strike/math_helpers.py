@@ -1,6 +1,6 @@
+from dataclasses import dataclass
 import math
-
-from coordinate_classes import Coordinate
+from typing import List, Tuple, Union, Optional
 
 
 def float_in_range(value: float, lower_bound: float, upper_bound: float) -> bool:
@@ -22,22 +22,115 @@ def normalise_angle(angle: float) -> float:
     return angle
 
 
-def distance_between_coordinates(coord1: Coordinate, coord2: Coordinate) -> float:
-
-    return (coord2 - coord1).magnitude
-
-
-def angle_from_a2b(coord1: Coordinate, coord2: Coordinate) -> float:
-
-    return (coord2 - coord1).angle
-
-
 def average(values):
 
     if not values:
         raise ValueError
 
     return sum(values) / len(values)
+
+
+class Coordinate:
+    def __init__(
+        self,
+        value1: Union[Union[List[float], Tuple[float]], float],
+        value2: Optional[float] = None,
+    ):
+        if value2 is None and type(value1) in (list, tuple) and len(value1) == 2:
+            self.x = value1[0]
+            self.y = value1[1]
+        else:
+            self.x = value1
+            self.y = value2
+
+    @property
+    def magnitude(self):
+        return math.sqrt(self.x ** 2 + self.y ** 2)
+
+    @property
+    def angle(self):
+        return math.atan2(self.y, self.x)
+
+    def cart2pol(self):
+        r = self.magnitude
+        theta = self.angle
+
+        return PolarCoordinate(r, theta)
+
+    def distance2(self, coord: "Coordinate") -> float:
+
+        return (coord - self).magnitude
+
+    def angle2(self, coord: "Coordinate") -> float:
+
+        return (coord - self).angle
+
+    def __add__(self, other):
+        if type(other) is Coordinate:
+            return Coordinate(self.x + other.x, self.y + other.y)
+        return Coordinate(self.x + other, self.y + other)
+
+    def __sub__(self, other):
+        if type(other) is Coordinate:
+            return Coordinate(self.x - other.x, self.y - other.y)
+        return Coordinate(self.x - other, self.y - other)
+
+    def __mul__(self, other):
+        if type(other) is Coordinate:
+            return Coordinate(self.x * other.x, self.y * other.y)
+        return Coordinate(other * self.x, other * self.y)
+
+    def __truediv__(self, other):
+        if type(other) is Coordinate:
+            return Coordinate(self.x / other.x, self.y / other.y)
+        return Coordinate(self.x / other, self.y / other)
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __rsub__(self, other):
+        return self.__sub__(other)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __dtruediv__(self, other):
+        return self.__truediv__(other)
+
+    def __getitem__(self, index):
+        if index == 0:
+            return self.x
+        elif index == 1:
+            return self.y
+        else:
+            raise IndexError("Only two elements in class")
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.x}, {self.y})"
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
+@dataclass
+class PolarCoordinate:
+    r: float
+    theta: float
+
+    def pol2cart(self):
+        x = self.r * math.cos(self.theta)
+        y = self.r * math.sin(self.theta)
+
+        return Coordinate(x, y)
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 class RelativeObjects:
@@ -55,16 +148,15 @@ class RelativeObjects:
 
     @property
     def distance(self):
-        return distance_between_coordinates(
-            self.object_a_location, self.object_b_location
-        )
+        return self.object_b_location.distance2(self.object_b_location)
 
     @property
     def angle_a2b(self):
-        return angle_from_a2b(self.object_a_location, self.object_b_location)
+        return self.object_a_location.angle2(self.object_b_location)
 
+    @property
     def angle_b2a(self):
-        return angle_from_a2b(self.object_b_location, self.object_a_location)
+        return self.object_b_location.angle2(self.object_a_location)
 
     def minimum_distance_between_objects(self):
 
@@ -94,9 +186,7 @@ class RelativeObjects:
             self.object_b_location + self.object_b_velocity * time_min_dist
         )
 
-        min_dist = distance_between_coordinates(
-            location_a_min_dist, location_b_min_dist
-        )
+        min_dist = location_a_min_dist.distance2(location_b_min_dist)
 
         return min_dist, time_min_dist, (location_a_min_dist, location_b_min_dist)
 

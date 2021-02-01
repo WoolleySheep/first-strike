@@ -1,10 +1,10 @@
 import math
 
 from controller import Controller
-from coordinate_classes import PolarCoordinate
 from math_helpers import (
     normalise_angle,
     RelativeObjects,
+    PolarCoordinate,
 )
 
 

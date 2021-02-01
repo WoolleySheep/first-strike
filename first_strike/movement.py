@@ -30,7 +30,7 @@ class Movement:
         rocket_ang_vel = self.physics.calc_rocket_angular_velocity()
         main_engine_acc = self.physics.calc_main_engine_acceleration()
 
-        thrusters = self.parameters.animation.thruster_labels
+        thrusters = self.parameters.rocket.thruster_labels
 
         thrusters_acc = [
             self.physics.calc_thruster_acceleration(thruster) for thruster in thrusters

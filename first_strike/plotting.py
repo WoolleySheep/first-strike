@@ -2,38 +2,38 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.collections as collections
 
-from coordinate_classes import PolarCoordinate
-from math_helpers import normalise_angle
+from math_helpers import normalise_angle, PolarCoordinate
 
 
 class Plotting:
-    def __init__(self, parameters, history, helpers, controllers):
+    def __init__(self, visual, parameters, history, helpers, controllers):
+        self.visual = visual
         self.parameters = parameters
         self.history = history
         self.helpers = helpers
         self.controllers = controllers
-        self.title = parameters.animation.default_title
+        self.title = visual.default_title
         self.fig, (self.ax, self.ax2) = plt.subplots(
             1, 2, gridspec_kw={"width_ratios": [5, 1]}
         )
 
         self.plot_obstacles()
 
-        (self.rocket_body,) = self.ax.plot([], c="g")
-        (self.engine_bridge,) = self.ax.plot([], c="g")
-        (self.main_engine_thrust,) = self.ax.plot([], c="r")
-        (self.left_front_thrust,) = self.ax.plot([], c="r")
-        (self.left_rear_thrust,) = self.ax.plot([], c="r")
-        (self.right_front_thrust,) = self.ax.plot([], c="r")
-        (self.right_rear_thrust,) = self.ax.plot([], c="r")
+        (self.rocket_body,) = self.ax.plot([], c=self.visual.rocket_colour)
+        (self.engine_bridge,) = self.ax.plot([], c=self.visual.rocket_colour)
+        (self.main_engine_thrust,) = self.ax.plot([], c=self.visual.thrust_cone_colour)
+        (self.left_front_thrust,) = self.ax.plot([], c=self.visual.thrust_cone_colour)
+        (self.left_rear_thrust,) = self.ax.plot([], c=self.visual.thrust_cone_colour)
+        (self.right_front_thrust,) = self.ax.plot([], c=self.visual.thrust_cone_colour)
+        (self.right_rear_thrust,) = self.ax.plot([], c=self.visual.thrust_cone_colour)
 
         self.plot_turret_body()
-        (self.turret_barrel,) = self.ax.plot([], c="b")
+        (self.turret_barrel,) = self.ax.plot([], c=self.visual.turret_colour)
 
-        self.projectiles = self.ax.scatter([], [], c="k")
+        self.projectiles = self.ax.scatter([], [], c=self.visual.projectile_colour)
 
         (self.charging,) = self.ax2.bar(
-            [0], [self.parameters.turret.min_firing_interval], color="green"
+            [0], [self.parameters.turret.min_firing_interval], color=self.visual.ready2fire_colour
         )
 
         self.set_subplot_titles()
@@ -58,12 +58,12 @@ class Plotting:
     @property
     def result(self):
 
-        return self.title != self.parameters.animation.default_title
+        return self.title != self.visual.default_title
 
     @property
     def alpha(self):
 
-        return self.parameters.animation.game_over_alpha if self.result else 1.0
+        return self.visual.game_over_alpha if self.result else 1.0
 
     def set_subplot_titles(self):
 
@@ -90,7 +90,7 @@ class Plotting:
     def plot_obstacles(self):
 
         obstacle_patches = [
-            plt.Circle((o.location.x, o.location.y), radius=o.radius, color="c")
+            plt.Circle((o.location.x, o.location.y), radius=o.radius, color=self.visual.obstacle_colour)
             for o in self.parameters.environment.obstacles
         ]
         self.ax.add_collection(
@@ -100,10 +100,10 @@ class Plotting:
     def plot_turret_body(self):
 
         location = self.parameters.turret.location
-        radius = self.parameters.turret.target_radius
+        radius = self.parameters.turret.radius
 
         turret_body_patch = plt.Circle(
-            (location.x, location.y), radius=radius, color="b"
+            (location.x, location.y), radius=radius, color=self.visual.turret_colour
         )
         self.ax.add_collection(
             collections.PatchCollection([turret_body_patch], match_original=True)
@@ -270,9 +270,9 @@ class Plotting:
         self.charging.set_height(charging_duration)
 
         if math.isclose(charging_duration, min_firing_interval):
-            self.charging.set_color("green")
+            self.charging.set_color(self.visual.ready2fire_colour)
         else:
-            self.charging.set_color("red")
+            self.charging.set_color(self.visual.not_ready2fire_colour)
 
     def plot_rocket(self):
 
@@ -327,7 +327,7 @@ class Plotting:
 
         rocket_length = self.parameters.rocket.length
         engine_bridge_width = (
-            self.parameters.animation.rocket_length_engine_bridge_width_ratio
+            self.visual.rocket_length_engine_bridge_width_ratio
             * rocket_length
         )
 
@@ -409,13 +409,13 @@ class Plotting:
         rocket_length = self.parameters.rocket.length
         thrust_ratio = force / max_main_engine_force
         edge_length = (
-            self.parameters.animation.rocket_length_max_thrust_length_ratio
+            self.visual.rocket_length_max_thrust_length_ratio
             * rocket_length
             * thrust_ratio
         )
 
         left_angle = normalise_angle(
-            projection_angle + self.parameters.animation.thrust_cone_angle
+            projection_angle + self.visual.thrust_cone_angle
         )
         relative_thrust_left_location = PolarCoordinate(
             edge_length, left_angle
@@ -423,7 +423,7 @@ class Plotting:
         thrust_left_location = projection_location + relative_thrust_left_location
 
         right_angle = normalise_angle(
-            projection_angle - self.parameters.animation.thrust_cone_angle
+            projection_angle - self.visual.thrust_cone_angle
         )
         relative_thrust_right_location = PolarCoordinate(
             edge_length, right_angle
@@ -448,8 +448,7 @@ class Plotting:
     def plot_turret_barrel(self):
 
         barrel_length = (
-            self.parameters.animation.square_root_board_area_barrel_length_ratio
-            * math.sqrt(self.parameters.environment.board_area)
+            self.visual.barrel_length_turret_radius_ratio * self.parameters.turret.radius
         )
 
         turret_location = self.parameters.turret.location

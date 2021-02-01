@@ -20,7 +20,7 @@ class FirstStrike:
 
     def play(self):
 
-        self.parameters, self.history = process_game_parameters()
+        self.visual, self.parameters, self.history = process_game_parameters()
         self.helpers = Helpers(self.parameters, self.history)
         self.physics = Physics(self.parameters, self.history)
         self.movement = Movement(
@@ -30,11 +30,12 @@ class FirstStrike:
             self.parameters, self.history, self.physics, self.helpers
         )
         self.plotting = Plotting(
-            self.parameters, self.history, self.helpers, self.controllers
+            self.visual, self.parameters, self.history, self.helpers, self.controllers
         )
         self.determine_winner = DetermineWinner(self.helpers, self.plotting)
 
         self.animation = Animation(
+            self.visual,
             self.parameters,
             self.history,
             self.movement,

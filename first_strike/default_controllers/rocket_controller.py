@@ -1,12 +1,12 @@
 import math
 
 from controller import Controller
-from coordinate_classes import Coordinate, PolarCoordinate
 from math_helpers import (
     normalise_angle,
-    distance_between_coordinates,
     RelativeObjects,
     average,
+    Coordinate,
+    PolarCoordinate,
 )
 
 
@@ -21,7 +21,7 @@ class RocketController(Controller):
         attraction_angle = self.controller_helpers.calc_angle2turret_relative2rocket()
 
         dist2turret = self.controller_helpers.calc_dist_between_rocket_and_turret()
-        turret_radius = self.parameters.turret.target_radius
+        turret_radius = self.parameters.turret.radius
         rocket_radius = self.parameters.rocket.target_radius
 
         attraction_strength = 1 / (dist2turret - rocket_radius - turret_radius)
@@ -118,9 +118,8 @@ class RocketController(Controller):
                     rocket_location_thresh_dist,
                     _,
                 ) = rocket2obstacle.distance_between_objects_first_occurs(threshold)
-                dist2threshold = distance_between_coordinates(
-                    rocket_location, rocket_location_thresh_dist
-                )
+                dist2threshold = rocket_location.distance2(rocket_location_thresh_dist)
+
                 try:
                     avoidance_strength = obstacle.radius / (min_dist * dist2threshold)
                 except ZeroDivisionError:
@@ -164,9 +163,7 @@ class RocketController(Controller):
                     rocket_location_thresh_dist,
                     _,
                 ) = rocket2projectile.distance_between_objects_first_occurs(threshold)
-                dist2threshold = distance_between_coordinates(
-                    rocket_location, rocket_location_thresh_dist
-                )
+                dist2threshold = rocket_location.distance2(rocket_location_thresh_dist)
                 try:
                     avoidance_strength = 1 / (min_dist * dist2threshold)
                 except ZeroDivisionError:
@@ -277,7 +274,7 @@ class RocketController(Controller):
         line_y_min_dist = gradient * line_x_min_dist + y_intercept
         line_location_min_dist = Coordinate(line_x_min_dist, line_y_min_dist)
 
-        return distance_between_coordinates(location, line_location_min_dist)
+        return location.distance2(line_location_min_dist)
 
     def _calc_projectile_path_avoidance(self):
 
@@ -297,9 +294,7 @@ class RocketController(Controller):
                 rocket_location, gradient, y_intercept
             )
             projectile_location = self.helpers.calc_projectile_location(projectile)
-            dist_rockt2projectile = distance_between_coordinates(
-                rocket_location, projectile_location
-            )
+            dist_rockt2projectile = rocket_location.distance2(projectile_location)
             try:
                 avoidance_strength = 1 / (
                     min_dist_rocket2path
@@ -382,7 +377,7 @@ class RocketController(Controller):
     def _calc_direction(self, safety_buffer=2.0):
 
         turret_attraction_factor = 40
-        edge_avoidance_factor = 20
+        edge_avoidance_factor = 30
         obstacle_avoidance_factor = 25.0
         projectile_avoidance_factor = 5.0
         intersecting_obstacle_avoidance_factor = 100
@@ -434,10 +429,7 @@ class RocketController(Controller):
             threshold = safety_buffer * (
                 self.parameters.rocket.target_radius + obstacle.radius
             )
-            if (
-                distance_between_coordinates(rocket_location, obstacle.location)
-                <= threshold
-            ):
+            if rocket_location.distance2(obstacle.location) <= threshold:
                 rocket2obstacle = RelativeObjects(
                     rocket_location, obstacle.location, rocket_velocity
                 )
@@ -448,10 +440,7 @@ class RocketController(Controller):
         threshold = safety_buffer * self.parameters.rocket.target_radius
         for projectile in self.history.projectiles:
             projectile_location = self.helpers.calc_projectile_location(projectile)
-            if (
-                distance_between_coordinates(rocket_location, projectile_location)
-                <= threshold
-            ):
+            if rocket_location.distance2(projectile_location) <= threshold:
                 projectile_velocity = self.helpers.calc_projectile_velocity(projectile)
                 rocket2projectile = RelativeObjects(
                     rocket_location,

@@ -1,14 +1,27 @@
 {
-    "animation":
+    "controllers":
+    {
+        "rocket_active_controller": "default",
+        "turret_active_controller": "default",
+        "rocket_raise_errors": false,
+        "turret_raise_errors": false
+    },
+    "visual":
     {
         "fps": 20.0,
-        "square_root_board_area_barrel_length_ratio": 0.05,
+        "barrel_length_turret_radius_ratio": 3.0,
         "rocket_length_engine_bridge_width_ratio": 0.3,
         "rocket_length_max_thrust_length_ratio": 2.0,
         "thrust_cone_angle": 0.5235987756,
         "game_over_alpha": 0.3,
         "default_title": "Game in progress",
-        "engine_labels": ["main", "left-front", "left-rear", "right-front", "right-rear"]
+        "rocket_colour": "g",
+        "thrust_cone_colour": "r",
+        "turret_colour": "b",
+        "projectile_colour": "k",
+        "obstacle_colour": "c",
+        "not_ready2fire_colour": "r",
+        "ready2fire_colour": "g"
     },
     "environment": 
     {   
@@ -59,9 +72,9 @@
     },
     "turret":
     {
-        "location": [0.0, 0.0],
+        "location": [100.0, 100.0],
         "start_angle": 0.0,
-        "target_radius": 5.0,
+        "radius": 5.0,
         "max_rotation_speed": 1.0,
         "projectile_speed": 60.0,
         "min_firing_interval": 0.7

@@ -2,7 +2,7 @@ import json
 import math
 
 from game_classes import (
-    AnimationParameters,
+    Visual,
     EnvironmentParameters,
     ObstacleParameters,
     TimeParameters,
@@ -13,8 +13,7 @@ from game_classes import (
     TurretHistory,
     History,
 )
-from coordinate_classes import Coordinate
-from math_helpers import distance_between_coordinates
+from math_helpers import Coordinate
 
 
 def process_game_parameters():
@@ -25,6 +24,9 @@ def process_game_parameters():
 
     return _store_game_parameters(game_parameters)
 
+def _is_colour(value):
+
+    return value in ('b', 'g', 'r', 'c', 'm', 'y', 'k', 'w')
 
 def _read_game_parameters():
 
@@ -63,22 +65,35 @@ def _is_within_limits(location, w, h):
 
 def _validate_game_parameters(game_params):
 
-    # animation
-    animation = game_params["animation"]
-    assert _is_positive_float(animation["fps"])
-    assert _is_positive_float(animation["square_root_board_area_barrel_length_ratio"])
-    assert _is_positive_float(animation["rocket_length_engine_bridge_width_ratio"])
-    assert _is_positive_float(animation["rocket_length_max_thrust_length_ratio"])
+    
+    controllers = game_params["controllers"]
+    assert controllers["rocket_active_controller"] in ["default", "player"]
+    assert controllers["turret_active_controller"] in ["default", "player"]
+    assert controllers["rocket_raise_errors"] is bool
+    assert controllers["turret_raise_errors"] is bool
+
+    visual = game_params["visual"]
+    assert _is_positive_float(visual["fps"])
+    assert _is_positive_float(visual["barrel_length_turret_radius_ratio"])
+    assert _is_positive_float(visual["rocket_length_engine_bridge_width_ratio"])
+    assert _is_positive_float(visual["rocket_length_max_thrust_length_ratio"])
     assert (
-        _is_positive_float(animation["thrust_cone_angle"])
-        and animation["thrust_cone_angle"] < math.pi / 2
+        _is_positive_float(visual["thrust_cone_angle"])
+        and visual["thrust_cone_angle"] < math.pi / 2
     )
     assert (
-        _is_positive_float(animation["game_over_alpha"])
-        and animation["game_over_alpha"] <= 1
+        _is_positive_float(visual["game_over_alpha"])
+        and visual["game_over_alpha"] <= 1
     )
-    assert type(animation["default_title"]) is str
-    assert _is_list_type(animation["engine_labels"], 5, str)
+    assert type(visual["default_title"]) is str
+    assert _is_colour(visual["rocket_colour"])
+    assert _is_colour(visual["thrust_cone_colour"])
+    assert _is_colour(visual["turret_colour"])
+    assert _is_colour(visual["projectile_colour"])
+    assert _is_colour(visual["obstacle_colour"])
+    assert _is_colour(visual["not_ready2fire_colour"])
+    assert _is_colour(visual["ready2fire_colour"])
+
 
     environment = game_params["environment"]
     assert _is_positive_float(environment["width"])
@@ -114,7 +129,7 @@ def _validate_game_parameters(game_params):
     turret = game_params["turret"]
     assert _is_location(turret["location"], environment["width"], environment["height"])
     assert _is_angle(turret["start_angle"])
-    assert _is_positive_float(turret["target_radius"])
+    assert _is_positive_float(turret["radius"])
     assert _is_positive_float(turret["max_rotation_speed"])
     assert _is_positive_float(turret["projectile_speed"])
     assert _is_positive_float(turret["min_firing_interval"])
@@ -123,32 +138,22 @@ def _validate_game_parameters(game_params):
         time["max_game_time"] > time["timestep"]
     )  # Game cannot be shorter than 1 timestep
     assert (
-        distance_between_coordinates(
-            Coordinate(rocket["start_location"]), Coordinate(turret["location"])
-        )
-        > rocket["target_radius"]
-    )
-    assert (
-        distance_between_coordinates(
-            Coordinate(rocket["start_location"]), Coordinate(turret["location"])
-        )
-        > turret["target_radius"]
+        Coordinate(rocket["start_location"]).distance2(Coordinate(turret["location"]))
+        > turret["radius"] + rocket["target_radius"]
     )
     assert all(
         (
-            distance_between_coordinates(
-                Coordinate(rocket["start_location"]), Coordinate(obstacle["location"])
+            Coordinate(rocket["start_location"]).distance2(
+                Coordinate(obstacle["location"])
             )
-            > obstacle["radius"]
+            > obstacle["radius"] + rocket["target_radius"]
             for obstacle in environment["obstacles"]
         )
     )
     assert all(
         (
-            distance_between_coordinates(
-                Coordinate(turret["location"]), Coordinate(obstacle["location"])
-            )
-            > obstacle["radius"]
+            Coordinate(turret["location"]).distance2(Coordinate(obstacle["location"]))
+            > obstacle["radius"] + turret["radius"]
             for obstacle in environment["obstacles"]
         )
     )
@@ -156,16 +161,24 @@ def _validate_game_parameters(game_params):
 
 def _store_game_parameters(game_params):
 
-    animation = game_params["animation"]
-    animation_obj = AnimationParameters(
-        animation["fps"],
-        animation["square_root_board_area_barrel_length_ratio"],
-        animation["rocket_length_engine_bridge_width_ratio"],
-        animation["rocket_length_max_thrust_length_ratio"],
-        animation["thrust_cone_angle"],
-        animation["game_over_alpha"],
-        animation["default_title"],
-        animation["engine_labels"],
+    controllers = game_params["controllers"]
+
+    visual = game_params["visual"]
+    visual_obj = Visual(
+        visual["fps"],
+        visual["barrel_length_turret_radius_ratio"],
+        visual["rocket_length_engine_bridge_width_ratio"],
+        visual["rocket_length_max_thrust_length_ratio"],
+        visual["thrust_cone_angle"],
+        visual["game_over_alpha"],
+        visual["default_title"],
+        visual["rocket_colour"],
+        visual["thrust_cone_colour"],
+        visual["turret_colour"],
+        visual["projectile_colour"],
+        visual["obstacle_colour"],
+        visual["not_ready2fire_colour"],
+        visual["ready2fire_colour"],
     )
 
     environment = game_params["environment"]
@@ -192,7 +205,7 @@ def _store_game_parameters(game_params):
     turret_params = game_params["turret"]
     turret_location = Coordinate(turret_params["location"])
     turret_params_obj = TurretParameters(
-        turret_params["target_radius"],
+        turret_params["radius"],
         turret_location,
         turret_params["max_rotation_speed"],
         turret_params["projectile_speed"],
@@ -200,7 +213,7 @@ def _store_game_parameters(game_params):
     )
 
     parameters = Parameters(
-        animation_obj, environment_obj, time_obj, rocket_params_obj, turret_params_obj
+        environment_obj, time_obj, rocket_params_obj, turret_params_obj
     )
 
     rocket_history_obj = RocketHistory(
@@ -210,4 +223,4 @@ def _store_game_parameters(game_params):
 
     history = History(rocket_history_obj, turret_history_obj)
 
-    return parameters, history
+    return visual_obj, parameters, history

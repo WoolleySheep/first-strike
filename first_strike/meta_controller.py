@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from copy import deepcopy
 import time
 
@@ -18,7 +19,7 @@ from player_controllers.turret_controller import (
 )
 
 
-class MetaController(Controller):
+class MetaController(Controller, ABC):
     def __init__(
         self,
         parameters,
@@ -73,11 +74,13 @@ class MetaController(Controller):
                 raise
         self.execution_time = time.time() - start_time
 
+    @abstractmethod
     def are_inputs_valid(self):
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     def store_inputs(self):
-        raise NotImplementedError
+        pass
 
     @property
     def execution_time_exceeded(self):

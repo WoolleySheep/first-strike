@@ -1,7 +1,6 @@
 import math
 
-from coordinate_classes import Coordinate, PolarCoordinate
-from math_helpers import normalise_angle
+from math_helpers import normalise_angle, Coordinate, PolarCoordinate
 
 
 class Physics:
@@ -110,7 +109,7 @@ class Physics:
         if engine == "right-rear":
             return self.history.rocket.right_rear_thruster_force
 
-        raise ValueError(f"Engine must be in {self.parameters.animation.engine_labels}")
+        raise ValueError(f"Engine must be in {self.parameters.rocket.engine_labels}")
 
     def get_thruster_direction(self, thruster):
 
@@ -120,7 +119,7 @@ class Physics:
             return -1
 
         raise ValueError(
-            f"Thruster must be one of {self.parameters.animation.thruster_labels}"
+            f"Thruster must be one of {self.parameters.rocket.thruster_labels}"
         )
 
     def get_thruster_rotation_direction(self, thruster):
@@ -131,5 +130,5 @@ class Physics:
             return 1
         else:
             raise ValueError(
-                f"Thruster must be one of {self.parameters.animation.thruster_labels}"
+                f"Thruster must be one of {self.parameters.rocket.thruster_labels}"
             )

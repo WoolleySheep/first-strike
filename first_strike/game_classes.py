@@ -1,28 +1,31 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Tuple
 
-from coordinate_classes import Coordinate
+from math_helpers import Coordinate
 
 
 @dataclass
-class AnimationParameters:
+class Visual:
     fps: float
-    square_root_board_area_barrel_length_ratio: float
+    barrel_length_turret_radius_ratio: float
     rocket_length_engine_bridge_width_ratio: float
     rocket_length_max_thrust_length_ratio: float
     thrust_cone_angle: float
     game_over_alpha: float
     default_title: str
-    engine_labels: List[str]
+    rocket_colour: str
+    thrust_cone_colour: str
+    turret_colour: str
+    projectile_colour: str
+    obstacle_colour: str
+    not_ready2fire_colour: str
+    ready2fire_colour: str
+
 
     @property
     def frame_interval_ms(self) -> int:
         """Frame interval in ms"""
         return int(1000 / self.fps)
-
-    @property
-    def thruster_labels(self) -> List[str]:
-        return self.engine_labels[1:]
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
@@ -79,10 +82,21 @@ class RocketParameters:
     length: float
     max_main_engine_force: float
     max_thruster_force: float
+    engine_labels: Tuple[str] = (
+        "main",
+        "left-front",
+        "left-rear",
+        "right-front",
+        "right-rear",
+    )
 
     @property
     def moment_of_inertia(self) -> float:
         return (1 / 12) * self.mass * self.length ** 2
+
+    @property
+    def thruster_labels(self) -> Tuple[str]:
+        return self.engine_labels[1:]
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
@@ -93,7 +107,7 @@ class RocketParameters:
 
 @dataclass
 class TurretParameters:
-    target_radius: float
+    radius: float
     location: Coordinate
     max_rotation_speed: float
     projectile_speed: float
@@ -108,7 +122,6 @@ class TurretParameters:
 
 @dataclass
 class Parameters:
-    animation: AnimationParameters
     environment: EnvironmentParameters
     time: TimeParameters
     rocket: RocketParameters

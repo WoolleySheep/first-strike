@@ -1,10 +1,12 @@
+from abc import ABC, abstractmethod
+
 from controller_helpers import ControllerHelpers
 from game_classes import Parameters, History
 from helpers import Helpers
 from physics import Physics
 
 
-class Controller:
+class Controller(ABC):
     def __init__(
         self,
         parameters: Parameters,
@@ -20,5 +22,6 @@ class Controller:
             parameters, history, physics, helpers
         )
 
+    @abstractmethod
     def calc_inputs(self):
-        raise NotImplementedError
+        pass
