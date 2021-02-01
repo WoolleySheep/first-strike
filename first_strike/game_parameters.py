@@ -69,8 +69,8 @@ def _validate_game_parameters(game_params):
     controllers = game_params["controllers"]
     assert controllers["rocket_active_controller"] in ["default", "player"]
     assert controllers["turret_active_controller"] in ["default", "player"]
-    assert controllers["rocket_raise_errors"] is bool
-    assert controllers["turret_raise_errors"] is bool
+    assert type(controllers["rocket_raise_errors"]) is bool
+    assert type(controllers["turret_raise_errors"]) is bool
 
     visual = game_params["visual"]
     assert _is_positive_float(visual["fps"])
@@ -162,6 +162,7 @@ def _validate_game_parameters(game_params):
 def _store_game_parameters(game_params):
 
     controllers = game_params["controllers"]
+    controller_parameters = controllers["rocket_active_controller"], controllers["turret_active_controller"], controllers["rocket_raise_errors"], controllers["turret_raise_errors"]
 
     visual = game_params["visual"]
     visual_obj = Visual(
@@ -223,4 +224,4 @@ def _store_game_parameters(game_params):
 
     history = History(rocket_history_obj, turret_history_obj)
 
-    return visual_obj, parameters, history
+    return controller_parameters, visual_obj, parameters, history

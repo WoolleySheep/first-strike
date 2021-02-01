@@ -20,14 +20,14 @@ class FirstStrike:
 
     def play(self):
 
-        self.visual, self.parameters, self.history = process_game_parameters()
+        controller_parameters, self.visual, self.parameters, self.history = process_game_parameters()
         self.helpers = Helpers(self.parameters, self.history)
         self.physics = Physics(self.parameters, self.history)
         self.movement = Movement(
             self.parameters, self.history, self.physics, self.helpers
         )
         self.controllers = Controllers(
-            self.parameters, self.history, self.physics, self.helpers
+            self.parameters, self.history, self.physics, self.helpers, controller_parameters
         )
         self.plotting = Plotting(
             self.visual, self.parameters, self.history, self.helpers, self.controllers

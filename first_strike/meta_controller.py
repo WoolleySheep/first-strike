@@ -27,6 +27,8 @@ class MetaController(Controller, ABC):
         physics,
         helpers,
         state_copy,
+        active_controller,
+        raise_errors,
         default_controller,
         player_controller,
     ):
@@ -39,6 +41,8 @@ class MetaController(Controller, ABC):
         )
         self.parameters = parameters
         self.state_copy = state_copy
+        self.active_controller = active_controller
+        self.raise_errors = raise_errors
         self.error = None
         self.execution_time = None
         self.state_changed = None
@@ -56,12 +60,9 @@ class MetaController(Controller, ABC):
 
     def calc_inputs(self):
 
-        catch_errors = True  # True for real games
-        active_controller = "default"
-
         controller = (
             self.default_controller
-            if active_controller == "default"
+            if self.active_controller == "default"
             else self.player_controller
         )
 
@@ -70,7 +71,7 @@ class MetaController(Controller, ABC):
             self.inputs = controller.calc_inputs()
         except Exception as error:
             self.error = error
-            if not catch_errors:
+            if self.raise_errors:
                 raise
         self.execution_time = time.time() - start_time
 
@@ -107,13 +108,15 @@ class MetaController(Controller, ABC):
 
 
 class RocketMetaController(MetaController):
-    def __init__(self, parameters, history, physics, helpers, state_copy):
+    def __init__(self, parameters, history, physics, helpers, state_copy, active_controller, raise_errors):
         super().__init__(
             parameters,
             history,
             physics,
             helpers,
             state_copy,
+            active_controller,
+            raise_errors,
             DefaultRocketController,
             PlayerRocketController,
         )
@@ -152,13 +155,15 @@ class RocketMetaController(MetaController):
 
 
 class TurretMetaController(MetaController):
-    def __init__(self, parameters, history, physics, helpers, state_copy):
+    def __init__(self, parameters, history, physics, helpers, state_copy, active_controller, raise_errors):
         super().__init__(
             parameters,
             history,
             physics,
             helpers,
             state_copy,
+            active_controller,
+            raise_errors,
             DefaultTurretController,
             PlayerTurretController,
         )
@@ -184,15 +189,16 @@ class TurretMetaController(MetaController):
 
 
 class Controllers:
-    def __init__(self, parameters, history, physics, helpers):
+    def __init__(self, parameters, history, physics, helpers, controller_parameters):
         self.parameters = parameters
         self.history = history
         self.state_copy = [None, None]
+        rocket_active_controller, turret_active_controller, rocket_raise_errors, turret_raise_errors = controller_parameters
         self.rocket_controller = RocketMetaController(
-            parameters, history, physics, helpers, self.state_copy
+            parameters, history, physics, helpers, self.state_copy, rocket_active_controller, rocket_raise_errors
         )
         self.turret_controller = TurretMetaController(
-            parameters, history, physics, helpers, self.state_copy
+            parameters, history, physics, helpers, self.state_copy, turret_active_controller, turret_raise_errors
         )
 
     @property
