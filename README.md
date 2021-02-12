@@ -2,6 +2,7 @@
 ## Programming game between a rocket and a turret
 
 ### TODO
+* Don't dodge projectiles if you would be within the radius of the turret or an obstacle
 * Reformat rocket controller
 * Allow for exception catching and default/player controller use to be set seperately for rocket and turret
 * Move engine names from animation to rocket parameters
