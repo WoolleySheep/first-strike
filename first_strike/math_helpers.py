@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 import math
-from typing import List, Tuple, Union, Optional
+from typing import Optional, Sequence, Tuple, Union
 
 
 def float_in_range(value: float, lower: float, upper: float) -> bool:
@@ -43,8 +43,8 @@ def normalise_angle(angle: float) -> float:
     return angle
 
 
-def average(values: Union[List, Tuple]) -> object:
-    """Average an array-like structure of objects.
+def average(values: Sequence) -> object:
+    """Average a sequence of objects.
 
     Relies on two pre-conditions:
         - The values can be summed together
@@ -67,7 +67,7 @@ class Coordinate:
     """
     Class defining an (x, y) coordinate.
 
-    Can be instantiated using either a pair of floats, or a length-2 array-like structure of floats.
+    Can be instantiated using either a pair of floats, or a length 2 sequence of floats.
         - Coordinate(1, 2)
         - Coordinate([1, 2])
         - Coordinate((1, 2))
@@ -80,10 +80,11 @@ class Coordinate:
 
     def __init__(
         self,
-        value1: Union[Union[List[float, float], Tuple[float, float]], float],
+        value1: Union[Sequence[float], float],
         value2: Optional[float] = None,
     ):
         if value2 is None:
+            assert len(value1) == 2
             self.x = value1[0]
             self.y = value1[1]
         else:
