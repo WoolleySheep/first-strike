@@ -60,6 +60,11 @@ def _is_location(location, w, h):
     return _is_list_type(location, 2, float) and _is_within_limits(location, w, h)
 
 
+def _is_obstacle(location, radius, w, h):
+
+    return _is_location(location, w, h) and _is_positive_float(radius)
+
+
 def _is_within_limits(location, w, h):
 
     return (-w / 2 <= location[0] <= w / 2) and (-h / 2 <= location[1] <= h / 2)
@@ -97,18 +102,21 @@ def _validate_game_parameters(game_params):
     environment = game_params["environment"]
     assert _is_positive_float(environment["width"])
     assert _is_positive_float(environment["height"])
-    assert all(
-        (
-            all((type(i) is float for i in obstacle["location"]))
-            for obstacle in environment["obstacles"]
+
+    if environment["obstacles"]:
+        assert all(
+            (
+                _is_obstacle(
+                    obstacle["location"],
+                    obstacle["radius"],
+                    environment["width"],
+                    environment["height"],
+                )
+                for obstacle in environment["obstacles"]
+            )
         )
-    )
-    assert all(
-        (
-            _is_positive_float(obstacle["radius"])
-            for obstacle in environment["obstacles"]
-        )
-    )
+    else:
+        assert environment["obstacles"] is None
 
     time = game_params["time"]
     assert _is_positive_float(time["timestep"])
@@ -140,22 +148,26 @@ def _validate_game_parameters(game_params):
         Coordinate(rocket["start_location"]).distance2(Coordinate(turret["location"]))
         > turret["radius"] + rocket["target_radius"]
     )
-    assert all(
-        (
-            Coordinate(rocket["start_location"]).distance2(
-                Coordinate(obstacle["location"])
+
+    if environment["obstacles"]:
+        assert all(
+            (
+                Coordinate(rocket["start_location"]).distance2(
+                    Coordinate(obstacle["location"])
+                )
+                > obstacle["radius"] + rocket["target_radius"]
+                for obstacle in environment["obstacles"]
             )
-            > obstacle["radius"] + rocket["target_radius"]
-            for obstacle in environment["obstacles"]
         )
-    )
-    assert all(
-        (
-            Coordinate(turret["location"]).distance2(Coordinate(obstacle["location"]))
-            > obstacle["radius"] + turret["radius"]
-            for obstacle in environment["obstacles"]
+        assert all(
+            (
+                Coordinate(turret["location"]).distance2(
+                    Coordinate(obstacle["location"])
+                )
+                > obstacle["radius"] + turret["radius"]
+                for obstacle in environment["obstacles"]
+            )
         )
-    )
 
 
 def _store_game_parameters(game_params):
@@ -187,10 +199,13 @@ def _store_game_parameters(game_params):
     )
 
     environment = game_params["environment"]
-    obstacles = [
-        ObstacleParameters(Coordinate(obstacle["location"]), obstacle["radius"])
-        for obstacle in environment["obstacles"]
-    ]
+    if environment["obstacles"]:
+        obstacles = [
+            ObstacleParameters(Coordinate(obstacle["location"]), obstacle["radius"])
+            for obstacle in environment["obstacles"]
+        ]
+    else:
+        obstacles = []
     environment_obj = EnvironmentParameters(
         environment["width"], environment["height"], obstacles
     )

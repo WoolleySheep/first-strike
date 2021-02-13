@@ -1,6 +1,6 @@
 from game_classes import History, Parameters
 from helpers import Helpers
-from meta_controller import Controllers
+from controllers import Controllers
 
 GAME_ONGOING = None
 

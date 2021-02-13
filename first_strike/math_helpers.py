@@ -1,18 +1,39 @@
+"""Maths-related functions and classes"""
+
 from dataclasses import dataclass
 import math
 from typing import List, Tuple, Union, Optional
 
 
-def float_in_range(value: float, lower_bound: float, upper_bound: float) -> bool:
+def float_in_range(value: float, lower: float, upper: float) -> bool:
+    """Checks if a float is within a range.
+
+    In addition to checking if lower < value < upper, checks if value is close to the end points;
+    if so, returns True. This is to account for the vageries of floating point precision.
+
+    args:
+        value: The value to check.
+        lower: The lower bound of the range.
+        upper: The upper bound of the range.
+    return:
+        _: The value is in the range.
+    """
 
     return (
-        (lower_bound <= value <= upper_bound)
-        or math.isclose(value, lower_bound)
-        or math.isclose(value, upper_bound)
+        (lower <= value <= upper)
+        or math.isclose(value, lower)
+        or math.isclose(value, upper)
     )
 
 
 def normalise_angle(angle: float) -> float:
+    """Normalises the angle in the range (-pi, pi].
+
+    args:
+        angle (rad): The angle to normalise.
+    return:
+        angle (rad): The normalised angle.
+    """
 
     while angle > math.pi:
         angle -= 2 * math.pi
@@ -22,7 +43,19 @@ def normalise_angle(angle: float) -> float:
     return angle
 
 
-def average(values):
+def average(values: Union[List, Tuple]) -> object:
+    """Average an array-like structure of objects.
+
+    Relies on two pre-conditions:
+        - The values can be summed together
+        - An instance of value can be divided by an int
+    If the array-like structure is empty, will raise a ValueError.
+
+    args:
+        values: The array-like structure to average.
+    return:
+        _: The average value.
+    """
 
     if not values:
         raise ValueError
@@ -31,12 +64,26 @@ def average(values):
 
 
 class Coordinate:
+    """
+    Class defining an (x, y) coordinate.
+
+    Can be instantiated using either a pair of floats, or a length-2 array-like structure of floats.
+        - Coordinate(1, 2)
+        - Coordinate([1, 2])
+        - Coordinate((1, 2))
+    Basic arithmetic (add, sub, mul, div) is possible in combination with scalars or other coordinates.
+        - Scalars will affect both the x and y values
+            - Eg: 5 * Coordinate(1, 2) == Coordinate(5, 10)
+        - The x values of other coordinates will affect the x value, and same for the y value
+            - Eg: Coordinate(1, 2) + Coordinate(5, 1) == Coordinate(6, 3)
+    """
+
     def __init__(
         self,
-        value1: Union[Union[List[float], Tuple[float]], float],
+        value1: Union[Union[List[float, float], Tuple[float, float]], float],
         value2: Optional[float] = None,
     ):
-        if value2 is None and type(value1) in (list, tuple) and len(value1) == 2:
+        if value2 is None:
             self.x = value1[0]
             self.y = value1[1]
         else:
@@ -44,44 +91,72 @@ class Coordinate:
             self.y = value2
 
     @property
-    def magnitude(self):
+    def magnitude(self) -> float:
+        """Calculates the distance of the coordinate from (0, 0).
+
+        return:
+            distance: The distance of the coordinate from (0, 0).
+        """
         return math.sqrt(self.x ** 2 + self.y ** 2)
 
     @property
-    def angle(self):
+    def angle(self) -> float:
+        """Calculates the angle of the coordinate from (0, 0).
+
+        return:
+            angle (rad): The angle of the coordinate from (0, 0).
+        """
         return math.atan2(self.y, self.x)
 
-    def cart2pol(self):
+    def cart2pol(self) -> "PolarCoordinate":
+        """Calulates the equivalent instance of PolarCoordinate.
+
+        return:
+            polar: The equivalent instance of PolarCoordinate.
+        """
         r = self.magnitude
         theta = self.angle
 
         return PolarCoordinate(r, theta)
 
     def distance2(self, coord: "Coordinate") -> float:
+        """Calculates the distance from the current coordinate to another.
 
+        args:
+            coord: The other coordinate.
+        return:
+            distance: The distance between the coordinates.
+        """
         return (coord - self).magnitude
 
     def angle2(self, coord: "Coordinate") -> float:
+        """Calculates the angle from the current coordinate to another.
 
+        args:
+            coord: The other coordinate
+        return:
+            distance: The angle from the current coordinate to the other.
+
+        """
         return (coord - self).angle
 
     def __add__(self, other):
-        if type(other) is Coordinate:
+        if isinstance(other, Coordinate):
             return Coordinate(self.x + other.x, self.y + other.y)
         return Coordinate(self.x + other, self.y + other)
 
     def __sub__(self, other):
-        if type(other) is Coordinate:
+        if isinstance(other, Coordinate):
             return Coordinate(self.x - other.x, self.y - other.y)
         return Coordinate(self.x - other, self.y - other)
 
     def __mul__(self, other):
-        if type(other) is Coordinate:
+        if isinstance(other, Coordinate):
             return Coordinate(self.x * other.x, self.y * other.y)
         return Coordinate(other * self.x, other * self.y)
 
     def __truediv__(self, other):
-        if type(other) is Coordinate:
+        if isinstance(other, Coordinate):
             return Coordinate(self.x / other.x, self.y / other.y)
         return Coordinate(self.x / other, self.y / other)
 
@@ -117,10 +192,20 @@ class Coordinate:
 
 @dataclass
 class PolarCoordinate:
+    """
+    Class defining an (r, theta) polar coordinate.
+
+    Not fully implemented; effectively only used for easily converting back to euclidian coordinates.
+    """
     r: float
     theta: float
 
-    def pol2cart(self):
+    def pol2cart(self) -> "Coordinate":
+        """Calulates the equivalent instance of Coordinate.
+
+        return:
+            euclidian: The equivalent instance of Coordinate.
+        """
         x = self.r * math.cos(self.theta)
         y = self.r * math.sin(self.theta)
 
@@ -134,56 +219,103 @@ class PolarCoordinate:
 
 
 class RelativeObjects:
+    """Class defining the relationship between two objects moving with constant velocities."""
     def __init__(
         self,
-        object_a_location,
-        object_b_location,
-        object_a_velocity=Coordinate(0.0, 0.0),
-        object_b_velocity=Coordinate(0.0, 0.0),
+        object_a_location: Coordinate,
+        object_b_location: Coordinate,
+        object_a_velocity: Coordinate = Coordinate(0.0, 0.0),
+        object_b_velocity: Coordinate = Coordinate(0.0, 0.0),
     ):
         self.object_a_location = object_a_location
         self.object_b_location = object_b_location
         self.object_a_velocity = object_a_velocity
         self.object_b_velocity = object_b_velocity
 
-    @property
-    def distance(self):
-        return self.object_b_location.distance2(self.object_b_location)
+    def locations(self, time: float = 0.0) -> Tuple[Coordinate, Coordinate]:
+        """Calculates the locations of objects a and b at a given time.
 
-    @property
-    def angle_a2b(self):
-        return self.object_a_location.angle2(self.object_b_location)
+        Defaults to the current time        
+        args:
+            time:
+        returns:
+            locations: Locations of objects a and b at the given time.  
+        """
+        location_a = self._location(self.object_a_location, self.object_a_velocity, time)
+        location_b = self._location(self.object_b_location, self.object_b_velocity, time)
 
-    @property
-    def angle_b2a(self):
-        return self.object_b_location.angle2(self.object_a_location)
+        return location_a, location_b
 
-    def minimum_distance_between_objects(self):
+    def distance(self, time: float = 0.0) -> float:
+        """Calculates the distance between object a and b at a given time.
+
+        Defaults to the current time        
+        args:
+            time:
+        returns:
+            distance: Distance between objects a and b at the given time.
+        """
+        location_a, location_b = self.locations()
+        return location_a.distance2(location_b)
+
+    def angle(self, time: float = 0.0) -> float:
+        """Angle from object a to b at a given time.
+        
+        Defaults to the current time        
+        args:
+            time:
+        returns:
+            distance: Angle from object a to b at the given time.
+        """
+        location_a, location_b = self.locations()
+        return location_a.angle2(location_b)
+
+    @staticmethod
+    def _location(current_location: Coordinate, velocity: Coordinate, time: float) -> Coordinate:
+        """Calculates the location an object will be at a given time
+        
+        args:
+            current_location:
+            velocity:
+            time:
+        return:
+            location: The location of the object at the given time.
+        """
+        return current_location + velocity * time
+
+    def minimum_distance_between_objects(self) -> Tuple[float, float, Tuple[Coordinate, Coordinate]]:
+        """Calculates when and where objects a and b are closest together.
+
+        Assumes that the velocity of objects a and b will remain constant.
+        Does not allow negative times; if the time when closest together is t < 0,
+        then t will be set = 0.
+
+        results:
+            min_dist: Minimum distance between objects a and b.
+            time: Time at which the minimum distance occurs.
+            location_a: Location of object a when distance is minimum
+            location_b: Location of object b when distance is minimum
+        """
 
         a, b, _ = self._get_relative_position_equation_constants()
 
         try:
-            time_min_dist = -b / (2 * a)  # Find time for local minima
+            time = -b / (2 * a)  # Find time for local minima
         except ZeroDivisionError:  # When rocket and projectile have exactly equal velocity
-            time_min_dist = 0.0  # Distance between will be same at all times
+            time = 0.0  # Distance between will be same at all times
         else:
             if (
-                time_min_dist < 0
+                time < 0
             ):  # If the minimum occurs in the past, set min time to 0
-                time_min_dist = 0.0
+                time = 0.0
 
-        location_a_min_dist = (
-            self.object_a_location + self.object_a_velocity * time_min_dist
-        )
-        location_b_min_dist = (
-            self.object_b_location + self.object_b_velocity * time_min_dist
-        )
+        location_a = self._location(self.object_a_location, self.object_a_velocity, time)
+        location_b = self._location(self.object_b_location, self.object_b_velocity, time)
 
-        min_dist = location_a_min_dist.distance2(location_b_min_dist)
+        min_dist = location_a.distance2(location_b)
 
-        return min_dist, time_min_dist, (location_a_min_dist, location_b_min_dist)
+        return min_dist, time, (location_a, location_b)
 
-    # def distance_between_objects_first_occurs(self, distance: float):
 
     def times_objects_within_distance(self, distance: float):
 

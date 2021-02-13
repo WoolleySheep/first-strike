@@ -72,7 +72,9 @@ class RocketController(Controller):
                 ).pol2cart()
             )
 
-        return average(obstacle_avoidance) if obstacle_avoidance else Coordinate(0.0, 0.0)
+        return (
+            average(obstacle_avoidance) if obstacle_avoidance else Coordinate(0.0, 0.0)
+        )
 
     def _calc_projectile_avoidance(self):
 
@@ -88,8 +90,11 @@ class RocketController(Controller):
                 PolarCoordinate(avoidance_strength, delta.angle).pol2cart()
             )
 
-        return average(projectile_avoidance) if projectile_avoidance else Coordinate(0.0, 0.0)
-
+        return (
+            average(projectile_avoidance)
+            if projectile_avoidance
+            else Coordinate(0.0, 0.0)
+        )
 
     def _calc_intersecting_obstacle_avoidance(self):
 
@@ -125,8 +130,11 @@ class RocketController(Controller):
                     PolarCoordinate(avoidance_strength, avoidance_angle).pol2cart()
                 )
 
-        return average(intersecting_obstacle_avoidance) if intersecting_obstacle_avoidance else Coordinate(0.0, 0.0)
-
+        return (
+            average(intersecting_obstacle_avoidance)
+            if intersecting_obstacle_avoidance
+            else Coordinate(0.0, 0.0)
+        )
 
     def _calc_intersecting_projectile_avoidance(self):
 
@@ -167,7 +175,7 @@ class RocketController(Controller):
                 continue
 
             # Check if the rocket will hit the turret before it is hit by the projectile
-            if not time_rocket_hit_turret:
+            if time_rocket_hit_turret is None:  # Only calculate this once per loop
                 turret_location = self.parameters.turret.location
                 rocket2turret = RelativeObjects(
                     rocket_location, turret_location, rocket_velocity
@@ -177,8 +185,14 @@ class RocketController(Controller):
                 )
                 if output:  # Rocket will hit turret
                     time_rocket_hit_turret, _ = output
-                    if time_rocket_hit_turret < time_projectile_hits_rocket:
-                        continue
+                else:
+                    time_rocket_hit_turret = False
+
+            if (
+                time_rocket_hit_turret
+                and time_rocket_hit_turret < time_projectile_hits_rocket
+            ):
+                continue
 
             # Check if the projectile will hit an obstacle before the projectile hits the rocket
             obstacle_intercept = False
@@ -213,14 +227,17 @@ class RocketController(Controller):
                 PolarCoordinate(avoidance_strength, avoidance_angle).pol2cart()
             )
 
-        return average(intersecting_projectile_avoidance) if intersecting_projectile_avoidance else Coordinate(0.0, 0.0)
-
-
+        return (
+            average(intersecting_projectile_avoidance)
+            if intersecting_projectile_avoidance
+            else Coordinate(0.0, 0.0)
+        )
 
     def _calc_within_buffer_obstacle_avoidance(self, safety_factor=2.0):
 
         rocket_location = self.history.rocket.location
         rocket_velocity = self.physics.calc_rocket_velocity()
+        time_rocket_hit_turret = None
 
         within_buffer_obstacle_avoidance = []
         for obstacle in self.parameters.environment.obstacles:
@@ -235,25 +252,54 @@ class RocketController(Controller):
             buffer = safety_factor * (
                 self.parameters.rocket.target_radius + obstacle.radius
             )
-            if min_dist <= buffer and self.helpers.is_within_bounds(
-                rocket_location_min_dist
-            ):
-                try:
-                    avoidance_strength = 1 / min_dist
-                except ZeroDivisionError:
-                    avoidance_strength = float("inf")
-                avoidance_angle = (rocket_location_min_dist - obstacle.location).angle
-                within_buffer_obstacle_avoidance.append(
-                    PolarCoordinate(avoidance_strength, avoidance_angle).pol2cart()
-                )
+            if min_dist > buffer:
+                continue  # Rocket doesn't come within buffer
 
-        return average(within_buffer_obstacle_avoidance) if within_buffer_obstacle_avoidance else Coordinate(0.0, 0.0)
+            output = rocket2obstacle.time_objects_first_within_distance(buffer)
+            if output:  # Rocket is currently outside buffer
+                time_rocket_enter_buffer, (rocket_location_enter_buffer, _) = output
+                if not self.helpers.is_within_bounds(rocket_location_enter_buffer):
+                    continue  # Rocket will be out of bounds before it enters buffer
+                # Check if the rocket will hit the turret before entering the obstacle buffer
+                if time_rocket_hit_turret is None:  #  Only calculate this once per loop
+                    turret_location = self.parameters.turret.location
+                    rocket2turret = RelativeObjects(
+                        rocket_location, turret_location, rocket_velocity
+                    )
+                    output = rocket2turret.time_objects_first_within_distance(
+                        self.parameters.turret.radius
+                        + self.parameters.rocket.target_radius
+                    )
+                    if output:  # Rocket will hit turret
+                        time_rocket_hit_turret, _ = output
+                    else:
+                        time_rocket_hit_turret = False
+                if (
+                    time_rocket_hit_turret
+                    and time_rocket_hit_turret < time_rocket_enter_buffer
+                ):
+                    continue
 
+            try:
+                avoidance_strength = 1 / min_dist
+            except ZeroDivisionError:
+                avoidance_strength = float("inf")
+            avoidance_angle = (rocket_location_min_dist - obstacle.location).angle
+            within_buffer_obstacle_avoidance.append(
+                PolarCoordinate(avoidance_strength, avoidance_angle).pol2cart()
+            )
+
+        return (
+            average(within_buffer_obstacle_avoidance)
+            if within_buffer_obstacle_avoidance
+            else Coordinate(0.0, 0.0)
+        )
 
     def _calc_within_buffer_projectile_avoidance(self, safety_factor=2.0):
 
         rocket_location = self.history.rocket.location
         rocket_velocity = self.physics.calc_rocket_velocity()
+        time_rocket_hit_turret = None
 
         within_buffer_projectile_avoidance = []
         for projectile in self.history.active_projectiles:
@@ -271,31 +317,92 @@ class RocketController(Controller):
                 (rocket_location_min_dist, projectile_location_min_dist),
             ) = rocket2projectile.minimum_distance_between_objects()
             buffer = safety_factor * self.parameters.rocket.target_radius
-            if (
-                min_dist <= buffer
-                and self.helpers.is_within_bounds(rocket_location_min_dist)
-                and self.helpers.is_within_bounds(projectile_location_min_dist)
-            ):
-                current_dist = (
-                    self.controller_helpers.calc_dist_between_rocket_and_projectile(
-                        projectile
-                    )
-                )
-                try:
-                    avoidance_strength = 1 / (
-                        min_dist * (current_dist - self.parameters.rocket.target_radius)
-                    )
-                except ZeroDivisionError:
-                    avoidance_strength = float("inf")
-                avoidance_angle = (
-                    rocket_location_min_dist - projectile_location_min_dist
-                ).angle
-                within_buffer_projectile_avoidance.append(
-                    PolarCoordinate(avoidance_strength, avoidance_angle).pol2cart()
-                )
+            if min_dist > buffer:
+                continue
 
-        return average(within_buffer_projectile_avoidance) if within_buffer_projectile_avoidance else Coordinate(0.0, 0.0)
+            output = rocket2projectile.time_objects_first_within_distance(buffer)
+            if output:  # Rocket is currently outside buffer
+                (
+                    time_rocket_enters_projectile_buffer,
+                    (rocket_location_enter_buffer, projectile_location_enter_buffer),
+                ) = output
 
+                # Check if the collision is out of bounds
+                if not self.helpers.is_within_bounds(
+                    rocket_location_enter_buffer
+                ) or not self.helpers.is_within_bounds(
+                    projectile_location_enter_buffer
+                ):
+                    continue
+
+                # Check if the rocket will hit the turret before it is hit by the projectile
+                if time_rocket_hit_turret is None:  # Only calculate this once per loop
+                    turret_location = self.parameters.turret.location
+                    rocket2turret = RelativeObjects(
+                        rocket_location, turret_location, rocket_velocity
+                    )
+                    output = rocket2turret.time_objects_first_within_distance(
+                        self.parameters.turret.radius
+                        + self.parameters.rocket.target_radius
+                    )
+                    if output:  # Rocket will hit turret
+                        time_rocket_hit_turret, _ = output
+                    else:
+                        time_rocket_hit_turret = False
+
+                if (
+                    time_rocket_hit_turret
+                    and time_rocket_hit_turret < time_rocket_enters_projectile_buffer
+                ):
+                    continue
+
+                # Check if the projectile will hit an obstacle before the projectile hits the rocket
+                obstacle_intercept = False
+                for obstacle in self.parameters.environment.obstacles:
+                    projectile2obstacle = RelativeObjects(
+                        projectile_location, obstacle.location, projectile_velocity
+                    )
+
+                    output = projectile2obstacle.time_objects_first_within_distance(
+                        obstacle.radius
+                    )
+                    if not output:
+                        continue
+
+                    time_projectile_hits_obstacle, _ = output
+                    if (
+                        time_projectile_hits_obstacle
+                        < time_rocket_enters_projectile_buffer
+                    ):
+                        obstacle_intercept = True
+                        break
+
+                if obstacle_intercept:
+                    continue
+
+            current_dist = (
+                self.controller_helpers.calc_dist_between_rocket_and_projectile(
+                    projectile
+                )
+            )
+            try:
+                avoidance_strength = 1 / (
+                    min_dist * (current_dist - self.parameters.rocket.target_radius)
+                )
+            except ZeroDivisionError:
+                avoidance_strength = float("inf")
+            avoidance_angle = (
+                rocket_location_min_dist - projectile_location_min_dist
+            ).angle
+            within_buffer_projectile_avoidance.append(
+                PolarCoordinate(avoidance_strength, avoidance_angle).pol2cart()
+            )
+
+        return (
+            average(within_buffer_projectile_avoidance)
+            if within_buffer_projectile_avoidance
+            else Coordinate(0.0, 0.0)
+        )
 
     @staticmethod
     def calc_minimum_distance_from_location2line(location, gradient, y_intercept):
@@ -342,8 +449,11 @@ class RocketController(Controller):
                 PolarCoordinate(avoidance_strength, avoidance_angle).pol2cart()
             )
 
-        return average(projectile_path_avoidance) if projectile_path_avoidance else Coordinate(0.0, 0.0)
-
+        return (
+            average(projectile_path_avoidance)
+            if projectile_path_avoidance
+            else Coordinate(0.0, 0.0)
+        )
 
     def _calc_recharge_factor(self):
         """1 if ready to fire, 0 if just fired"""

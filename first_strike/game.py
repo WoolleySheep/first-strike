@@ -1,5 +1,5 @@
 from animation import Animation
-from meta_controller import Controllers
+from controllers import Controllers
 from helpers import Helpers
 from movement import Movement
 from game_parameters import process_game_parameters
@@ -69,9 +69,11 @@ FirstStrike().play()
 # import pstats
 # import os
 
-# modules2exclude = ("game.py", "animation.py", "plotting.py", "__init__.py")
+# modules2exclude = ("game.py", "animation.py", "plotting.py", "__init__.py", "__pycache__")
 # modules = os.listdir("first_strike")
 # modules2include = set(modules) - set(modules2exclude)
+# additional = ("rocket_controller.py", "turret_controller.py")
+# modules2include.update(additional)
 
 # regex = r'|'.join([f"^{m}" for m in modules2include])
 
