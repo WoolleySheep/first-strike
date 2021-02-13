@@ -3,8 +3,8 @@
     {
         "rocket_active_controller": "default",
         "turret_active_controller": "default",
-        "rocket_raise_errors": false,
-        "turret_raise_errors": false
+        "rocket_raise_errors": true,
+        "turret_raise_errors": true
     },
     "visual":
     {

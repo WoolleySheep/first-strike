@@ -72,9 +72,7 @@ class RocketController(Controller):
                 ).pol2cart()
             )
 
-        if not obstacle_avoidance:
-            return Coordinate(0.0, 0.0)
-        return average(obstacle_avoidance)
+        return average(obstacle_avoidance) if obstacle_avoidance else Coordinate(0.0, 0.0)
 
     def _calc_projectile_avoidance(self):
 
@@ -90,10 +88,8 @@ class RocketController(Controller):
                 PolarCoordinate(avoidance_strength, delta.angle).pol2cart()
             )
 
-        if not projectile_avoidance:
-            return Coordinate(0.0, 0.0)
+        return average(projectile_avoidance) if projectile_avoidance else Coordinate(0.0, 0.0)
 
-        return average(projectile_avoidance)
 
     def _calc_intersecting_obstacle_avoidance(self):
 
@@ -117,7 +113,7 @@ class RocketController(Controller):
                 _, (
                     rocket_location_thresh_dist,
                     _,
-                ) = rocket2obstacle.distance_between_objects_first_occurs(threshold)
+                ) = rocket2obstacle.time_objects_first_within_distance(threshold)
                 dist2threshold = rocket_location.distance2(rocket_location_thresh_dist)
 
                 try:
@@ -129,14 +125,14 @@ class RocketController(Controller):
                     PolarCoordinate(avoidance_strength, avoidance_angle).pol2cart()
                 )
 
-        if not intersecting_obstacle_avoidance:
-            return Coordinate(0.0, 0.0)
-        return average(intersecting_obstacle_avoidance)
+        return average(intersecting_obstacle_avoidance) if intersecting_obstacle_avoidance else Coordinate(0.0, 0.0)
+
 
     def _calc_intersecting_projectile_avoidance(self):
 
         rocket_location = self.history.rocket.location
         rocket_velocity = self.physics.calc_rocket_velocity()
+        time_rocket_hit_turret = None
 
         intersecting_projectile_avoidance = []
         for projectile in self.history.active_projectiles:
@@ -153,31 +149,73 @@ class RocketController(Controller):
                 _,
                 (rocket_location_min_dist, projectile_location_min_dist),
             ) = rocket2projectile.minimum_distance_between_objects()
+
+            # Check if the projectile will ever get close enough
             threshold = self.parameters.rocket.target_radius
-            if (
-                min_dist <= threshold
-                and self.helpers.is_within_bounds(rocket_location_min_dist)
-                and self.helpers.is_within_bounds(projectile_location_min_dist)
-            ):
-                _, (
-                    rocket_location_thresh_dist,
-                    _,
-                ) = rocket2projectile.distance_between_objects_first_occurs(threshold)
-                dist2threshold = rocket_location.distance2(rocket_location_thresh_dist)
-                try:
-                    avoidance_strength = 1 / (min_dist * dist2threshold)
-                except ZeroDivisionError:
-                    avoidance_strength = float("inf")
-                avoidance_angle = (
-                    rocket_location_min_dist - projectile_location_min_dist
-                ).angle
-                intersecting_projectile_avoidance.append(
-                    PolarCoordinate(avoidance_strength, avoidance_angle).pol2cart()
+            if min_dist > threshold:
+                continue
+
+            (
+                time_projectile_hits_rocket,
+                (rocket_location_hit, projectile_location_hit),
+            ) = rocket2projectile.time_objects_first_within_distance(threshold)
+
+            # Check if the collision is out of bounds
+            if not self.helpers.is_within_bounds(
+                rocket_location_hit
+            ) or not self.helpers.is_within_bounds(projectile_location_hit):
+                continue
+
+            # Check if the rocket will hit the turret before it is hit by the projectile
+            if not time_rocket_hit_turret:
+                turret_location = self.parameters.turret.location
+                rocket2turret = RelativeObjects(
+                    rocket_location, turret_location, rocket_velocity
+                )
+                output = rocket2turret.time_objects_first_within_distance(
+                    self.parameters.turret.radius + self.parameters.rocket.target_radius
+                )
+                if output:  # Rocket will hit turret
+                    time_rocket_hit_turret, _ = output
+                    if time_rocket_hit_turret < time_projectile_hits_rocket:
+                        continue
+
+            # Check if the projectile will hit an obstacle before the projectile hits the rocket
+            obstacle_intercept = False
+            for obstacle in self.parameters.environment.obstacles:
+                projectile2obstacle = RelativeObjects(
+                    projectile_location, obstacle.location, projectile_velocity
                 )
 
-        if not intersecting_projectile_avoidance:
-            return Coordinate(0.0, 0.0)
-        return average(intersecting_projectile_avoidance)
+                output = projectile2obstacle.time_objects_first_within_distance(
+                    obstacle.radius
+                )
+                if not output:
+                    continue
+
+                time_projectile_hits_obstacle, _ = output
+                if time_projectile_hits_obstacle < time_projectile_hits_rocket:
+                    obstacle_intercept = True
+                    break
+
+            if obstacle_intercept:
+                continue
+
+            dist2collision = rocket_location.distance2(rocket_location_hit)
+            try:
+                avoidance_strength = 1 / (min_dist * dist2collision)
+            except ZeroDivisionError:
+                avoidance_strength = float("inf")
+            avoidance_angle = (
+                rocket_location_min_dist - projectile_location_min_dist
+            ).angle
+            intersecting_projectile_avoidance.append(
+                PolarCoordinate(avoidance_strength, avoidance_angle).pol2cart()
+            )
+
+        return average(intersecting_projectile_avoidance) if intersecting_projectile_avoidance else Coordinate(0.0, 0.0)
+
+
 
     def _calc_within_buffer_obstacle_avoidance(self, safety_factor=2.0):
 
@@ -209,9 +247,8 @@ class RocketController(Controller):
                     PolarCoordinate(avoidance_strength, avoidance_angle).pol2cart()
                 )
 
-        if not within_buffer_obstacle_avoidance:
-            return Coordinate(0.0, 0.0)
-        return average(within_buffer_obstacle_avoidance)
+        return average(within_buffer_obstacle_avoidance) if within_buffer_obstacle_avoidance else Coordinate(0.0, 0.0)
+
 
     def _calc_within_buffer_projectile_avoidance(self, safety_factor=2.0):
 
@@ -257,9 +294,8 @@ class RocketController(Controller):
                     PolarCoordinate(avoidance_strength, avoidance_angle).pol2cart()
                 )
 
-        if not within_buffer_projectile_avoidance:
-            return Coordinate(0.0, 0.0)
-        return average(within_buffer_projectile_avoidance)
+        return average(within_buffer_projectile_avoidance) if within_buffer_projectile_avoidance else Coordinate(0.0, 0.0)
+
 
     @staticmethod
     def calc_minimum_distance_from_location2line(location, gradient, y_intercept):
@@ -306,9 +342,8 @@ class RocketController(Controller):
                 PolarCoordinate(avoidance_strength, avoidance_angle).pol2cart()
             )
 
-        if not projectile_path_avoidance:
-            return Coordinate(0.0, 0.0)
-        return average(projectile_path_avoidance)
+        return average(projectile_path_avoidance) if projectile_path_avoidance else Coordinate(0.0, 0.0)
+
 
     def _calc_recharge_factor(self):
         """1 if ready to fire, 0 if just fired"""
@@ -322,16 +357,6 @@ class RocketController(Controller):
         min_firing_interval = self.parameters.turret.min_firing_interval
 
         return min(1.0, dtime / min_firing_interval)
-
-    def _calc_angle_turret_barrel2rocket(self):
-
-        rocket_location = self.history.rocket.location
-        turret_location = self.parameters.turret.location
-        turret_angle = self.history.turret.angle
-
-        angle_turret2rocket = (rocket_location - turret_location).angle
-
-        return normalise_angle(angle_turret2rocket - turret_angle)
 
     def _calc_rotation_factor(self):
         """1 if aligned with intercept angle, 0 if pointing in the opposite direction"""
@@ -584,13 +609,3 @@ class RocketController(Controller):
             rotation + direction
             for rotation, direction in zip(rotational_outputs, directional_outputs)
         ]
-
-    def angle_to_turret(self):
-
-        rocket_angle = self.history.rocket.angle
-
-        angle = math.atan2(
-            *list(self.parameters.turret.location - self.history.rocket.location)[::-1]
-        )
-
-        return normalise_angle(angle - rocket_angle)

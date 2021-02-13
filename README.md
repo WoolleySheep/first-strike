@@ -2,11 +2,11 @@
 ## Programming game between a rocket and a turret
 
 ### TODO
-* Don't dodge projectiles if you would be within the radius of the turret or an obstacle
+* Buffer functions still need to be brought up to date
+* Consider refactoring meta controller to be composed not inherited; how to define turret and rocket controller differently?
+* Profile code properly
+* Add harder game modes; limited projectiles can be fired, limited amount of engine fuel, etc.
 * Reformat rocket controller
-* Allow for exception catching and default/player controller use to be set seperately for rocket and turret
-* Move engine names from animation to rocket parameters
-* Move a lot of hardcoded parameters to the parameters json
 * Fix "projectiles not disappearing when off board" problem
 * Random board generator
 * Add typing and docstrings

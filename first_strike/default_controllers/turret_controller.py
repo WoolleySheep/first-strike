@@ -88,23 +88,23 @@ class TurretController(Controller):
             projectile_location, rocket_location, projectile_velocity, rocket_velocity
         )
 
-        rocket_output = projectile2rocket.distance_between_objects_first_occurs(
+        rocket_output = projectile2rocket.time_objects_first_within_distance(
             self.parameters.rocket.target_radius
         )
         if rocket_output is None:
             return False  # Doesn't hit rocket at all
-        time_rocket_intercept, *_ = rocket_output
+        time_rocket_intercept, _ = rocket_output
 
         for obstacle in self.parameters.environment.obstacles:
             projectile2obstacle = RelativeObjects(
                 projectile_location, obstacle.location, projectile_velocity
             )
-            obstacle_output = projectile2obstacle.distance_between_objects_first_occurs(
+            obstacle_output = projectile2obstacle.time_objects_first_within_distance(
                 obstacle.radius
             )
             if obstacle_output is None:
                 continue
-            time_obstacle_intercept, *_ = obstacle_output
+            time_obstacle_intercept, _ = obstacle_output
             if time_obstacle_intercept < time_rocket_intercept:
                 return False
 

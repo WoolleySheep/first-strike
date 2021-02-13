@@ -24,9 +24,11 @@ def process_game_parameters():
 
     return _store_game_parameters(game_parameters)
 
+
 def _is_colour(value):
 
-    return value in ('b', 'g', 'r', 'c', 'm', 'y', 'k', 'w')
+    return value in ("b", "g", "r", "c", "m", "y", "k", "w")
+
 
 def _read_game_parameters():
 
@@ -65,7 +67,6 @@ def _is_within_limits(location, w, h):
 
 def _validate_game_parameters(game_params):
 
-    
     controllers = game_params["controllers"]
     assert controllers["rocket_active_controller"] in ["default", "player"]
     assert controllers["turret_active_controller"] in ["default", "player"]
@@ -82,8 +83,7 @@ def _validate_game_parameters(game_params):
         and visual["thrust_cone_angle"] < math.pi / 2
     )
     assert (
-        _is_positive_float(visual["game_over_alpha"])
-        and visual["game_over_alpha"] <= 1
+        _is_positive_float(visual["game_over_alpha"]) and visual["game_over_alpha"] <= 1
     )
     assert type(visual["default_title"]) is str
     assert _is_colour(visual["rocket_colour"])
@@ -93,7 +93,6 @@ def _validate_game_parameters(game_params):
     assert _is_colour(visual["obstacle_colour"])
     assert _is_colour(visual["not_ready2fire_colour"])
     assert _is_colour(visual["ready2fire_colour"])
-
 
     environment = game_params["environment"]
     assert _is_positive_float(environment["width"])
@@ -162,7 +161,12 @@ def _validate_game_parameters(game_params):
 def _store_game_parameters(game_params):
 
     controllers = game_params["controllers"]
-    controller_parameters = controllers["rocket_active_controller"], controllers["turret_active_controller"], controllers["rocket_raise_errors"], controllers["turret_raise_errors"]
+    controller_parameters = (
+        controllers["rocket_active_controller"],
+        controllers["turret_active_controller"],
+        controllers["rocket_raise_errors"],
+        controllers["turret_raise_errors"],
+    )
 
     visual = game_params["visual"]
     visual_obj = Visual(

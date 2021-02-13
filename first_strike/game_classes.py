@@ -21,7 +21,6 @@ class Visual:
     not_ready2fire_colour: str
     ready2fire_colour: str
 
-
     @property
     def frame_interval_ms(self) -> int:
         """Frame interval in ms"""
@@ -51,10 +50,6 @@ class EnvironmentParameters:
     width: float
     height: float
     obstacles: List[ObstacleParameters]
-
-    @property
-    def board_area(self) -> float:
-        return self.width * self.height
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__

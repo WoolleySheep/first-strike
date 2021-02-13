@@ -2,6 +2,8 @@
 
 .vscode
 
+profile.txt
+
 first_strike/__pycache__
 first_strike/player_controllers/__pycache__
 first_strike/default_controllers/__pycache__

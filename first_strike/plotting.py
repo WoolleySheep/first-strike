@@ -3,16 +3,40 @@ import matplotlib.pyplot as plt
 import matplotlib.collections as collections
 
 from math_helpers import normalise_angle, PolarCoordinate
+from result import (
+    DRAW,
+    ROCKET_WIN,
+    TURRET_WIN,
+    ROCKET_ERROR,
+    TURRET_ERROR,
+    BOTH_ERROR,
+    ROCKET_TIME_EXCEEDED,
+    TURRET_TIME_EXCEEDED,
+    BOTH_TIME_EXCEEDED,
+    ROCKET_TAMPERED,
+    TURRET_TAMPERED,
+    ROCKET_INPUT_INVALID,
+    TURRET_INPUT_INVALID,
+    BOTH_INPUT_INVALID,
+    ROCKET_OUT_OF_BOUNDS,
+    ROCKET_HIT_OBSTACLE,
+    PROJECTILE_HIT_ROCKET,
+    ROCKET_HIT_TURRET,
+    BOTH_DESTROYED,
+    GAME_TIME_EXCEEDED,
+)
 
 
 class Plotting:
-    def __init__(self, visual, parameters, history, helpers, controllers):
+    def __init__(self, visual, parameters, history, helpers, controllers, result):
         self.visual = visual
         self.parameters = parameters
         self.history = history
         self.helpers = helpers
         self.controllers = controllers
+        self.result = result
         self.title = visual.default_title
+        self.plotted_result = False
         self.fig, (self.ax, self.ax2) = plt.subplots(
             1, 2, gridspec_kw={"width_ratios": [5, 1]}
         )
@@ -33,7 +57,9 @@ class Plotting:
         self.projectiles = self.ax.scatter([], [], c=self.visual.projectile_colour)
 
         (self.charging,) = self.ax2.bar(
-            [0], [self.parameters.turret.min_firing_interval], color=self.visual.ready2fire_colour
+            [0],
+            [self.parameters.turret.min_firing_interval],
+            color=self.visual.ready2fire_colour,
         )
 
         self.set_subplot_titles()
@@ -56,14 +82,9 @@ class Plotting:
         ]
 
     @property
-    def result(self):
-
-        return self.title != self.visual.default_title
-
-    @property
     def alpha(self):
 
-        return self.visual.game_over_alpha if self.result else 1.0
+        return self.visual.game_over_alpha if self.result.is_game_over() else 1.0
 
     def set_subplot_titles(self):
 
@@ -90,7 +111,11 @@ class Plotting:
     def plot_obstacles(self):
 
         obstacle_patches = [
-            plt.Circle((o.location.x, o.location.y), radius=o.radius, color=self.visual.obstacle_colour)
+            plt.Circle(
+                (o.location.x, o.location.y),
+                radius=o.radius,
+                color=self.visual.obstacle_colour,
+            )
             for o in self.parameters.environment.obstacles
         ]
         self.ax.add_collection(
@@ -111,149 +136,65 @@ class Plotting:
 
     def plot_board(self):
 
-        if self.result:
-            self.set_alpha()
-
-        self.update_title()
-
         self.plot_charging()
 
         self.plot_rocket()
         self.plot_turret_barrel()
         self.plot_projectiles()
 
+        self.update_plot_title()
+
+        if self.result.is_game_over():
+            self.set_alpha()
+            self.plotted_result = True
+
     def set_alpha(self):
-        # TODO: Currently not changing the alpha of the obstacle patches
 
         for p in self.plots + self.ax.collections:
             p.set_alpha(self.alpha)
 
-    def update_title(self):
+    def update_plot_title(self):
 
-        if self.result:
-            self._set_title()
-            return
-
-        rocket_controller = self.controllers.rocket_controller
-        turret_controller = self.controllers.turret_controller
-
-        self.print_logs_if_controller_issue_raised()
-
-        self.update_title_if_controller_issue_raised()
+        if self.result.is_game_over():
+            self.update_title()
 
         self._set_title()
 
     def _set_title(self):
 
         current_time = self.history.time
-        self.fig.suptitle(self.title + f" ({current_time:.1f}s)")
+        self.fig.suptitle(f"{self.title} ({current_time:.1f}s)")
 
-    def print_logs_if_controller_issue_raised(self):
+    def update_title(self):
 
-        rocket_controller = self.controllers.rocket_controller
-        turret_controller = self.controllers.turret_controller
+        winner2title = {
+            DRAW: "DRAW",
+            ROCKET_WIN: "ROCKET WIN",
+            TURRET_WIN: "TURRET WIN",
+        }
+        cause2title = {
+            ROCKET_ERROR: "Rocket controller failed",
+            TURRET_ERROR: "Turret controller failed",
+            BOTH_ERROR: "Both controllers failed simultaneously",
+            ROCKET_TIME_EXCEEDED: "Rocket controller exceeded allowed execution time",
+            TURRET_TIME_EXCEEDED: "Turret controller exceeded allowed execution time",
+            BOTH_TIME_EXCEEDED: "Both controllers exceeded allowed execution time",
+            ROCKET_TAMPERED: "Rocket controller tampered with the game",
+            TURRET_TAMPERED: "Turret controller tampered with the game",
+            ROCKET_INPUT_INVALID: "Rocket inputs invalid",
+            TURRET_INPUT_INVALID: "Turret inputs invalid",
+            BOTH_INPUT_INVALID: "Both sets of inputs are invalid",
+            ROCKET_OUT_OF_BOUNDS: "Rocket has gone out-of-bounds",
+            ROCKET_HIT_OBSTACLE: "Rocket has hit an obstacle",
+            PROJECTILE_HIT_ROCKET: "Projectile has hit the rocket",
+            ROCKET_HIT_TURRET: "Rocket has hit the turret",
+            BOTH_DESTROYED: "Both the rocket and turret have been destroyed",
+            GAME_TIME_EXCEEDED: "Game time exceeded",
+        }
 
-        if rocket_controller.state_changed or turret_controller.state_changed:
-            print("Rocket tampering: ", rocket_controller.state_changed)
-            print("Turret tampering: ", turret_controller.state_changed)
-            if self.controllers.state_copy[0] != self.parameters:
-                print("Game parameters modified")
-                print("Before controller execution:")
-                print(self.controllers.state_copy[0])
-                print("After controller execution:")
-                print(self.parameters)
-
-            if self.controllers.state_copy[1] != self.history:
-                print("Game history modified")
-                print("Before controller execution:")
-                print(self.controllers.state_copy[1])
-                print("After controller execution:")
-                print(self.history)
-
-        if rocket_controller.error or turret_controller.error:
-            print(f"Rocket error: {rocket_controller.error}")
-            print(f"Turret error: {turret_controller.error}")
-
-        if (
-            rocket_controller.inputs_valid is False
-            or turret_controller.inputs_valid is False
-        ):
-            # Don't want to log if an input_valid is None
-            print("Rocket inputs")
-            print(f"    Valid: {rocket_controller.inputs_valid}")
-            print(f"    Values: {rocket_controller.inputs}")
-            print("Turret inputs")
-            print(f"    Valid: {turret_controller.inputs_valid}")
-            print(f"    Values: {turret_controller.inputs}")
-
-        if (
-            rocket_controller.execution_time_exceeded
-            or turret_controller.execution_time_exceeded
-        ):
-            print(f"Rocket execution time: {rocket_controller.execution_time} sec")
-            print(f"Turret execution time: {turret_controller.execution_time} sec")
-
-    def update_title_if_controller_issue_raised(self):
-
-        self._title_update_state_changed()
-
-        if self.result:
-            return
-
-        self._title_update_error()
-
-        if self.result:
-            return
-
-        self._title_update_execution_time_exceeded()
-
-        if self.result:
-            return
-
-        self._title_update_inputs_invalid()
-
-    def _title_update_inputs_invalid(self):
-
-        if (
-            not self.controllers.rocket_controller.inputs_valid
-            and not self.controllers.turret_controller.inputs_valid
-        ):
-            self.title = "DRAW: Both sets of inputs are invalid"
-        elif not self.controllers.rocket_controller.inputs_valid:
-            self.title = "TURRET WIN: Rocket inputs invalid"
-        elif not self.controllers.turret_controller.inputs_valid:
-            self.title = "ROCKET WIN: Turret inputs invalid"
-
-    def _title_update_execution_time_exceeded(self):
-
-        if (
-            self.controllers.rocket_controller.execution_time_exceeded
-            and self.controllers.turret_controller.execution_time_exceeded
-        ):
-            self.title = "DRAW: Both controllers exceeded allowed execution time"
-        elif self.controllers.rocket_controller.execution_time_exceeded:
-            self.title = "TURRET WIN: Rocket controller exceeded allowed execution time"
-        elif self.controllers.turret_controller.execution_time_exceeded:
-            self.title = "ROCKET WIN: Turret controller exceeded allowed execution time"
-
-    def _title_update_error(self):
-
-        if (
-            self.controllers.rocket_controller.error
-            and self.controllers.turret_controller.error
-        ):
-            self.title = "DRAW: Both controllers failed simultaneously"
-        elif self.controllers.rocket_controller.error:
-            self.title = "TURRET WIN: Rocket controller failed"
-        elif self.controllers.turret_controller.error:
-            self.title = "ROCKET WIN: Turret controller failed"
-
-    def _title_update_state_changed(self):
-
-        if self.controllers.rocket_controller.state_changed:
-            self.title = "TURRET WIN: Rocket controller tampered with the game"
-        elif self.controllers.turret_controller.state_changed:
-            self.title = "ROCKET WIN: Turret controller tampered with the game"
+        self.title = (
+            f"{winner2title[self.result.winner]}: {cause2title[self.result.cause]}"
+        )
 
     def plot_charging(self):
 
@@ -327,8 +268,7 @@ class Plotting:
 
         rocket_length = self.parameters.rocket.length
         engine_bridge_width = (
-            self.visual.rocket_length_engine_bridge_width_ratio
-            * rocket_length
+            self.visual.rocket_length_engine_bridge_width_ratio * rocket_length
         )
 
         rocket_angle = self.history.rocket.angle
@@ -414,17 +354,13 @@ class Plotting:
             * thrust_ratio
         )
 
-        left_angle = normalise_angle(
-            projection_angle + self.visual.thrust_cone_angle
-        )
+        left_angle = normalise_angle(projection_angle + self.visual.thrust_cone_angle)
         relative_thrust_left_location = PolarCoordinate(
             edge_length, left_angle
         ).pol2cart()
         thrust_left_location = projection_location + relative_thrust_left_location
 
-        right_angle = normalise_angle(
-            projection_angle - self.visual.thrust_cone_angle
-        )
+        right_angle = normalise_angle(projection_angle - self.visual.thrust_cone_angle)
         relative_thrust_right_location = PolarCoordinate(
             edge_length, right_angle
         ).pol2cart()
@@ -448,7 +384,8 @@ class Plotting:
     def plot_turret_barrel(self):
 
         barrel_length = (
-            self.visual.barrel_length_turret_radius_ratio * self.parameters.turret.radius
+            self.visual.barrel_length_turret_radius_ratio
+            * self.parameters.turret.radius
         )
 
         turret_location = self.parameters.turret.location
@@ -471,11 +408,4 @@ class Plotting:
             for location in self.helpers.get_active_projectile_locations()
         ]
 
-        # TODO: Cannot deal with cases where the number of projectiles on
-        # the board drops to 0
-        if active_projectile_locations:
-            self.projectiles.set_offsets(active_projectile_locations)
-
-    def scale_object(self, radius: float):
-
-        return 100 * radius ** 2 / self.parameters.environment.width
+        self.projectiles.set_offsets(active_projectile_locations or [[None, None]])

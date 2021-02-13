@@ -13,7 +13,7 @@ class Animation:
         movement,
         controllers,
         plotting,
-        determine_winner,
+        result,
     ):
         self.visual = visual
         self.parameters = parameters
@@ -21,8 +21,7 @@ class Animation:
         self.movement = movement
         self.controllers = controllers
         self.plotting = plotting
-        self.determine_winner = determine_winner
-        self.animation_func = None
+        self.result = result
 
     def run(self):
         """Run the game"""
@@ -43,19 +42,20 @@ class Animation:
     def _ntimesteps_per_frame_refresh(self):
 
         return int(
-            self.visual.frame_interval_ms
-            / (1000 * self.parameters.time.timestep)
+            self.visual.frame_interval_ms / (1000 * self.parameters.time.timestep)
         )
 
-    def update(self, i):
+    def update(self, _):
 
-        for _ in range(self._ntimesteps_per_frame_refresh()):
-            if not self.plotting.result:
-                self.controllers.process_inputs()
-            if not self.plotting.result and not self.controllers.issue_raised:
-                self.movement.move_objects()
-                self.determine_winner.check_win_conditions()
+        if not self.plotting.plotted_result:
+            for _ in range(self._ntimesteps_per_frame_refresh()):
+                if not self.result.winner:
+                    self.controllers.process_inputs()
+                    self.result.check_controllers()
+                if not self.result.winner:
+                    self.movement.move_objects()
+                    self.result.check_win_conditions()
 
-        self.plotting.plot_board()
+            self.plotting.plot_board()
 
         return self.plotting.plots

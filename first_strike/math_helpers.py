@@ -160,14 +160,7 @@ class RelativeObjects:
 
     def minimum_distance_between_objects(self):
 
-        x1 = self.object_b_velocity.x - self.object_a_velocity.x
-        x2 = self.object_b_location.x - self.object_a_location.x
-        y1 = self.object_b_velocity.y - self.object_a_velocity.y
-        y2 = self.object_b_location.y - self.object_a_location.y
-
-        a = x1 ** 2 + y1 ** 2
-        b = 2 * (x1 * x2 + y1 * y2)
-        # c = x2 ** 2 + y2 ** 2  (Not required)
+        a, b, _ = self._get_relative_position_equation_constants()
 
         try:
             time_min_dist = -b / (2 * a)  # Find time for local minima
@@ -190,16 +183,12 @@ class RelativeObjects:
 
         return min_dist, time_min_dist, (location_a_min_dist, location_b_min_dist)
 
-    def distance_between_objects_first_occurs(self, distance: float):
+    # def distance_between_objects_first_occurs(self, distance: float):
 
-        x1 = self.object_b_velocity.x - self.object_a_velocity.x
-        x2 = self.object_b_location.x - self.object_a_location.x
-        y1 = self.object_b_velocity.y - self.object_a_velocity.y
-        y2 = self.object_b_location.y - self.object_a_location.y
+    def times_objects_within_distance(self, distance: float):
 
-        a = x1 ** 2 + y1 ** 2
-        b = 2 * (x1 * x2 + y1 * y2)
-        c = x2 ** 2 + y2 ** 2 - distance ** 2
+        a, b, c = self._get_relative_position_equation_constants()
+        c -= distance ** 2
 
         determinant = b ** 2 - 4 * a * c
 
@@ -209,12 +198,44 @@ class RelativeObjects:
         t1_dist = (-b - math.sqrt(determinant)) / (2 * a)
         t2_dist = (-b + math.sqrt(determinant)) / (2 * a)
 
-        t_dist = min(t1_dist, t2_dist)
+        t_max = max(t1_dist, t2_dist)
+        if t_max < 0:
+            return None  # Never within distance for positive time
+        location_a_max = self.object_a_location + self.object_a_velocity * t_max
+        location_b_max = self.object_b_location + self.object_b_velocity * t_max
+        max_output = t_max, (location_a_max, location_b_max)
 
-        location_a_dist = self.object_a_location + self.object_a_velocity * t_dist
-        location_b_dist = self.object_b_location + self.object_b_velocity * t_dist
+        t_min = min(t1_dist, t2_dist)
+        if t_min < 0:
+            return None, max_output
 
-        return t_dist, (location_a_dist, location_b_dist)
+        location_a_min = self.object_a_location + self.object_a_velocity * t_min
+        location_b_min = self.object_b_location + self.object_b_velocity * t_min
+        min_output = t_min, (location_a_min, location_b_min)
+
+        return min_output, max_output
+
+    def time_objects_first_within_distance(self, distance: float):
+
+        output = self.times_objects_within_distance(distance)
+        if not output:
+            return
+
+        first, _ = output
+        return first
+
+    def _get_relative_position_equation_constants(self):
+
+        x1 = self.object_b_velocity.x - self.object_a_velocity.x
+        x2 = self.object_b_location.x - self.object_a_location.x
+        y1 = self.object_b_velocity.y - self.object_a_velocity.y
+        y2 = self.object_b_location.y - self.object_a_location.y
+
+        a = x1 ** 2 + y1 ** 2
+        b = 2 * (x1 * x2 + y1 * y2)
+        c = x2 ** 2 + y2 ** 2
+
+        return a, b, c
 
 
 # print(normalise_angle(6.169999999999913))

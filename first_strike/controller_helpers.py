@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import math
 
 from game_classes import Parameters, History, ObstacleParameters
-from math_helpers import normalise_angle, PolarCoordinate
+from math_helpers import normalise_angle
 from physics import Physics
 from helpers import Helpers
 

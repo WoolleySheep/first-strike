@@ -33,10 +33,12 @@ class MetaController(Controller, ABC):
         player_controller,
     ):
         super().__init__(parameters, history, physics, helpers)
-    
+
         self.parameters = parameters
         self.state_copy = state_copy
-        controller = default_controller if active_controller == "default" else player_controller
+        controller = (
+            default_controller if active_controller == "default" else player_controller
+        )
         self.controller = controller(parameters, history, physics, helpers)
         self.raise_errors = raise_errors
         self.error = None
@@ -98,7 +100,16 @@ class MetaController(Controller, ABC):
 
 
 class RocketMetaController(MetaController):
-    def __init__(self, parameters, history, physics, helpers, state_copy, active_controller, raise_errors):
+    def __init__(
+        self,
+        parameters,
+        history,
+        physics,
+        helpers,
+        state_copy,
+        active_controller,
+        raise_errors,
+    ):
         super().__init__(
             parameters,
             history,
@@ -145,7 +156,16 @@ class RocketMetaController(MetaController):
 
 
 class TurretMetaController(MetaController):
-    def __init__(self, parameters, history, physics, helpers, state_copy, active_controller, raise_errors):
+    def __init__(
+        self,
+        parameters,
+        history,
+        physics,
+        helpers,
+        state_copy,
+        active_controller,
+        raise_errors,
+    ):
         super().__init__(
             parameters,
             history,
@@ -183,12 +203,29 @@ class Controllers:
         self.parameters = parameters
         self.history = history
         self.state_copy = [None, None]
-        rocket_active_controller, turret_active_controller, rocket_raise_errors, turret_raise_errors = controller_parameters
+        (
+            rocket_active_controller,
+            turret_active_controller,
+            rocket_raise_errors,
+            turret_raise_errors,
+        ) = controller_parameters
         self.rocket_controller = RocketMetaController(
-            parameters, history, physics, helpers, self.state_copy, rocket_active_controller, rocket_raise_errors
+            parameters,
+            history,
+            physics,
+            helpers,
+            self.state_copy,
+            rocket_active_controller,
+            rocket_raise_errors,
         )
         self.turret_controller = TurretMetaController(
-            parameters, history, physics, helpers, self.state_copy, turret_active_controller, turret_raise_errors
+            parameters,
+            history,
+            physics,
+            helpers,
+            self.state_copy,
+            turret_active_controller,
+            turret_raise_errors,
         )
 
     @property
