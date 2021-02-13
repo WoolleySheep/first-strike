@@ -33,15 +33,11 @@ class MetaController(Controller, ABC):
         player_controller,
     ):
         super().__init__(parameters, history, physics, helpers)
-        self.default_controller = default_controller(
-            parameters, history, physics, helpers
-        )
-        self.player_controller = player_controller(
-            parameters, history, physics, helpers
-        )
+    
         self.parameters = parameters
         self.state_copy = state_copy
-        self.active_controller = active_controller
+        controller = default_controller if active_controller == "default" else player_controller
+        self.controller = controller(parameters, history, physics, helpers)
         self.raise_errors = raise_errors
         self.error = None
         self.execution_time = None
@@ -60,15 +56,9 @@ class MetaController(Controller, ABC):
 
     def calc_inputs(self):
 
-        controller = (
-            self.default_controller
-            if self.active_controller == "default"
-            else self.player_controller
-        )
-
         start_time = time.time()
         try:
-            self.inputs = controller.calc_inputs()
+            self.inputs = self.controller.calc_inputs()
         except Exception as error:
             self.error = error
             if self.raise_errors:
