@@ -8,6 +8,8 @@
 * Consider refactoring meta controller to be composed not inherited; how to define turret and rocket controller differently?
 * Profile code properly
 * Add harder game modes; limited projectiles can be fired, limited amount of engine fuel, etc.
+* Add a max to turret attraction strength, just like there's a min.
+* Write a proper test suite.
 * Reformat rocket controller
 * Fix "projectiles not disappearing when off board" problem
 * Random board generator
