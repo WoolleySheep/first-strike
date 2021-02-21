@@ -223,7 +223,22 @@ class PolarCoordinate:
 
 
 class RelativeObjects:
-    """Class defining the relationship between two objects moving with constant velocities."""
+    """Class defining the relationship between two objects moving with constant velocities.
+    
+    Attributes:
+        - object_a_location: The current location of object a.
+        - object_b_location: The current location of object b.
+        - object_a_velocity: The current velocity of object a.
+        - object_b_velocity: The current velocity of object b.
+    Methods:
+        - locations: Calculates the locations of objects a and b at a given time.
+        - distance: Calculates the distance between object a and b at a given time.
+        - angle: Angle from object a to b at a given time.
+        - minimum_distance_between_objects: Calculates when and where objects a and b are closest together.
+        - times_objects_within_distance: Calculates the times and locations that objects a and b are a given distance apart.
+        - time_objects_first_within_distance: Calculates when and where objects a and b are first a given distance apart.
+        
+    """
 
     def __init__(
         self,
@@ -232,6 +247,14 @@ class RelativeObjects:
         object_a_velocity: Coordinate = Coordinate(0.0, 0.0),
         object_b_velocity: Coordinate = Coordinate(0.0, 0.0),
     ):
+        """Create an instance of RelativeObjects
+        
+        args:
+            - object_a_location: The current location of object a.
+            - object_b_location: The current location of object b.
+            - object_a_velocity: The current velocity of object a.
+            - object_b_velocity: The current velocity of object b.
+        """
         self.object_a_location = object_a_location
         self.object_b_location = object_b_location
         self.object_a_velocity = object_a_velocity
@@ -283,7 +306,7 @@ class RelativeObjects:
     def _location(
         current_location: Coordinate, velocity: Coordinate, time: float
     ) -> Coordinate:
-        """Calculates the location an object will be at a given time
+        """Calculates the location an object will be at a given time.
 
         args:
             current_location:
@@ -303,7 +326,7 @@ class RelativeObjects:
         Does not allow negative times; if the time when closest together is t < 0,
         then t will be set = 0.
 
-        results:
+        results: Information about the time and locations of objects when seperation is min.
             min_dist: Minimum distance between objects a and b.
             time: Time at which the minimum distance occurs.
             location_a: Location of object a when distance is minimum
@@ -338,7 +361,7 @@ class RelativeObjects:
             ObjectDistanceInfo, Tuple[Optional[ObjectDistanceInfo], ObjectDistanceInfo]
         ]
     ]:
-        """Calculates the times that objects a and b are a certain distance from one another.
+        """Calculates the times and locations that objects a and b are a given distance apart.
 
         As the velocity of a and b are assumed to be constant, there are three different scenarios:
             - a and b are always further apart than the given distance (no solution)
@@ -390,7 +413,7 @@ class RelativeObjects:
     def time_objects_first_within_distance(
         self, distance: float
     ) -> Optional[ObjectDistanceInfo]:
-        """Calculates the first time that objects a and b are a certain distance from one another.
+        """Calculates when and where objects a and b are first a given distance apart.
 
         If a and b are always further apart than the given distance, None will be returned
         If the first time a and b are already within distance of each other, None will be returned
