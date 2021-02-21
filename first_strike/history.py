@@ -42,6 +42,16 @@ class RocketHistory:
     def right_rear_thruster_force(self) -> float:
         return self.right_rear_thruster_forces[-1]
 
+    @property
+    def engine_forces(self) -> Tuple[float, float, float, float, float]:
+
+        return self.main_engine_force, self.left_front_thruster_force, self.left_rear_thruster_force, self.right_front_thruster_force, self.right_rear_thruster_force
+
+    @property
+    def thruster_forces(self) -> Tuple[float, float, float, float]:
+
+        return self.engine_forces[1:]
+
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 

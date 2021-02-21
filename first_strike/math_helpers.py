@@ -143,6 +143,13 @@ class Coordinate:
         """
         return (coord - self).angle
 
+    def rotate_by(self, angle: float) -> "Coordinate":
+
+        p = self.cart2pol()
+        p.theta += angle
+        return p.pol2cart()
+
+
     def __add__(self, other):
         if isinstance(other, Coordinate):
             return Coordinate(self.x + other.x, self.y + other.y)

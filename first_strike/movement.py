@@ -25,34 +25,30 @@ class Movement:
         self.update_the_time()
 
     def move_the_rocket(self):
-
-        rocket_vel = self.physics.calc_rocket_velocity()
-        rocket_ang_vel = self.physics.calc_rocket_angular_velocity()
-        main_engine_acc = self.physics.calc_main_engine_acceleration()
-
-        thrusters = self.parameters.rocket.thruster_labels
-
-        thrusters_acc = [
-            self.physics.calc_thruster_acceleration(thruster) for thruster in thrusters
-        ]
-        thrusters_ang_acc = [
-            self.physics.calc_thruster_angular_acceleration(thruster)
-            for thruster in thrusters
-        ]
-
-        acc = main_engine_acc + sum(thrusters_acc)
-        ang_acc = sum(thrusters_ang_acc)
+        # TODO: Something in movement is cooked.  Fix it.
 
         timestep = self.parameters.time.timestep
 
-        updated_vel = rocket_vel + acc * timestep
-        updated_ang_vel = rocket_ang_vel + ang_acc * timestep
+        rocket_hist = self.history.rocket
+        rocket_params = self.parameters.rocket
 
-        locations = self.history.rocket.locations
-        locations.append(locations[-1] + updated_vel * timestep)
+        vel = self.physics.calc_rocket_velocity()
+        acc_relative = self.parameters.rocket.calc_acc_relative2rocket(rocket_hist.engine_forces)
 
-        angles = self.history.rocket.angles
-        angles.append(normalise_angle(angles[-1] + updated_ang_vel * timestep))
+        acc = acc_relative.rotate_by(rocket_hist.angle - math.pi / 2)
+
+        updated_vel = vel + acc * timestep
+        
+        rocket_hist.locations.append(rocket_hist.location + updated_vel * timestep)
+
+        angular_vel = self.physics.calc_rocket_angular_velocity()
+        angular_acc = rocket_params.calc_angular_acc(rocket_hist.thruster_forces)
+        
+        updated_angular_vel = angular_vel + angular_acc * timestep
+
+        updated_angle = normalise_angle(rocket_hist.angle + updated_angular_vel * timestep)
+        rocket_hist.angles.append(updated_angle)
+
 
     def mark_projectiles_off_board(self):
 

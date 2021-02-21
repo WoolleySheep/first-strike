@@ -1,4 +1,5 @@
 import math
+from typing import Tuple
 
 from math_helpers import normalise_angle, Coordinate, PolarCoordinate
 
@@ -54,6 +55,27 @@ class Physics:
 
         return (theta1 - theta2) / timestep
 
+    def get_engine_force(self, engine):
+
+        if engine == "main":
+            return self.history.rocket.main_engine_force
+        if engine == "left-front":
+            return self.history.rocket.left_front_thruster_force
+        if engine == "left-rear":
+            return self.history.rocket.left_rear_thruster_force
+        if engine == "right-front":
+            return self.history.rocket.right_front_thruster_force
+        if engine == "right-rear":
+            return self.history.rocket.right_rear_thruster_force
+
+        raise ValueError(f"Engine must be in {self.parameters.rocket.engine_labels}")
+
+
+    #########################
+    # TO BE CHANGED
+    #########################
+
+
     def calc_main_engine_acceleration(self) -> Coordinate:
 
         angle = self.history.rocket.angle
@@ -76,9 +98,10 @@ class Physics:
 
     def calc_thruster_torque(self, thruster: str) -> Coordinate:
 
+        rocket = self.parameters.rocket
         length = self.parameters.rocket.length
         force = self.get_engine_force(thruster)
-        direction = self.get_thruster_rotation_direction(thruster)
+        direction = rocket.get_thruster_moment_direction(thruster)
 
         return direction * force * length / 2
 
@@ -91,44 +114,9 @@ class Physics:
 
     def calc_thruster_angle(self, thruster):
 
-        angle = self.history.rocket.angle
-        direction = self.get_thruster_direction(thruster)
+        rocket = self.parameters.rocket
+        thruster_direction = rocket.get_thruster_force_direction(thruster)
+        rocket_angle = self.history.rocket.angle
 
-        return normalise_angle(angle - direction * math.pi / 2)
+        return normalise_angle(rocket_angle - thruster_direction * math.pi / 2)
 
-    def get_engine_force(self, engine):
-
-        if engine == "main":
-            return self.history.rocket.main_engine_force
-        if engine == "left-front":
-            return self.history.rocket.left_front_thruster_force
-        if engine == "left-rear":
-            return self.history.rocket.left_rear_thruster_force
-        if engine == "right-front":
-            return self.history.rocket.right_front_thruster_force
-        if engine == "right-rear":
-            return self.history.rocket.right_rear_thruster_force
-
-        raise ValueError(f"Engine must be in {self.parameters.rocket.engine_labels}")
-
-    def get_thruster_direction(self, thruster):
-
-        if thruster in ("left-front", "left-rear"):
-            return 1
-        if thruster in ("right-front", "right-rear"):
-            return -1
-
-        raise ValueError(
-            f"Thruster must be one of {self.parameters.rocket.thruster_labels}"
-        )
-
-    def get_thruster_rotation_direction(self, thruster):
-
-        if thruster in ("left-front", "right-rear"):
-            return -1
-        elif thruster in ("right-front", "left-rear"):
-            return 1
-        else:
-            raise ValueError(
-                f"Thruster must be one of {self.parameters.rocket.thruster_labels}"
-            )
