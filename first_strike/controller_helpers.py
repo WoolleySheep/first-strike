@@ -7,10 +7,11 @@ from dataclasses import dataclass
 import math
 from typing import Optional
 
-from game_classes import Parameters, History, ObstacleParameters
-from math_helpers import normalise_angle
-from physics import Physics
 from helpers import Helpers
+from history import History
+from math_helpers import normalise_angle
+from parameters import ObstacleParameters, Parameters
+from physics import Physics
 
 
 @dataclass

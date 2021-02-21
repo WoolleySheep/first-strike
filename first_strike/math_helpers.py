@@ -4,6 +4,8 @@ from dataclasses import dataclass
 import math
 from typing import Optional, Sequence, Tuple, Union
 
+ObjectDistanceInfo = Tuple[float, Tuple["Coordinate", "Coordinate"]]
+
 
 def float_in_range(value: float, lower: float, upper: float) -> bool:
     """Checks if a float is within a range.
@@ -198,6 +200,7 @@ class PolarCoordinate:
 
     Not fully implemented; effectively only used for easily converting back to euclidian coordinates.
     """
+
     r: float
     theta: float
 
@@ -221,6 +224,7 @@ class PolarCoordinate:
 
 class RelativeObjects:
     """Class defining the relationship between two objects moving with constant velocities."""
+
     def __init__(
         self,
         object_a_location: Coordinate,
@@ -236,24 +240,28 @@ class RelativeObjects:
     def locations(self, time: float = 0.0) -> Tuple[Coordinate, Coordinate]:
         """Calculates the locations of objects a and b at a given time.
 
-        Defaults to the current time        
+        Defaults to the current time
         args:
             time:
-        returns:
-            locations: Locations of objects a and b at the given time.  
+        return:
+            locations: Locations of objects a and b at the given time.
         """
-        location_a = self._location(self.object_a_location, self.object_a_velocity, time)
-        location_b = self._location(self.object_b_location, self.object_b_velocity, time)
+        location_a = self._location(
+            self.object_a_location, self.object_a_velocity, time
+        )
+        location_b = self._location(
+            self.object_b_location, self.object_b_velocity, time
+        )
 
         return location_a, location_b
 
     def distance(self, time: float = 0.0) -> float:
         """Calculates the distance between object a and b at a given time.
 
-        Defaults to the current time        
+        Defaults to the current time
         args:
             time:
-        returns:
+        return:
             distance: Distance between objects a and b at the given time.
         """
         location_a, location_b = self.locations()
@@ -261,20 +269,22 @@ class RelativeObjects:
 
     def angle(self, time: float = 0.0) -> float:
         """Angle from object a to b at a given time.
-        
-        Defaults to the current time        
+
+        Defaults to the current time
         args:
             time:
-        returns:
+        return:
             distance: Angle from object a to b at the given time.
         """
         location_a, location_b = self.locations()
         return location_a.angle2(location_b)
 
     @staticmethod
-    def _location(current_location: Coordinate, velocity: Coordinate, time: float) -> Coordinate:
+    def _location(
+        current_location: Coordinate, velocity: Coordinate, time: float
+    ) -> Coordinate:
         """Calculates the location an object will be at a given time
-        
+
         args:
             current_location:
             velocity:
@@ -284,7 +294,9 @@ class RelativeObjects:
         """
         return current_location + velocity * time
 
-    def minimum_distance_between_objects(self) -> Tuple[float, float, Tuple[Coordinate, Coordinate]]:
+    def minimum_distance_between_objects(
+        self,
+    ) -> Tuple[float, float, Tuple[Coordinate, Coordinate]]:
         """Calculates when and where objects a and b are closest together.
 
         Assumes that the velocity of objects a and b will remain constant.
@@ -305,20 +317,44 @@ class RelativeObjects:
         except ZeroDivisionError:  # When rocket and projectile have exactly equal velocity
             time = 0.0  # Distance between will be same at all times
         else:
-            if (
-                time < 0
-            ):  # If the minimum occurs in the past, set min time to 0
+            if time < 0:  # If the minimum occurs in the past, set min time to 0
                 time = 0.0
 
-        location_a = self._location(self.object_a_location, self.object_a_velocity, time)
-        location_b = self._location(self.object_b_location, self.object_b_velocity, time)
+        location_a = self._location(
+            self.object_a_location, self.object_a_velocity, time
+        )
+        location_b = self._location(
+            self.object_b_location, self.object_b_velocity, time
+        )
 
         min_dist = location_a.distance2(location_b)
 
         return min_dist, time, (location_a, location_b)
 
+    def times_objects_within_distance(
+        self, distance: float
+    ) -> Optional[
+        Union[
+            ObjectDistanceInfo, Tuple[Optional[ObjectDistanceInfo], ObjectDistanceInfo]
+        ]
+    ]:
+        """Calculates the times that objects a and b are a certain distance from one another.
 
-    def times_objects_within_distance(self, distance: float):
+        As the velocity of a and b are assumed to be constant, there are three different scenarios:
+            - a and b are always further apart than the given distance (no solution)
+            - a and b are a distance from each other at one time (1 solution)
+            - a and b are a given distance from each other two times (2 solutions)
+        If there is only 1 solution, then only one solution will be returned
+        If the earlier of the two times is < 0, then None will be returned just for that time
+        If both times are < 0, then None will be returned
+        args:
+            distance: Distance between objects a and b
+        return:
+            _: Information about the objects when they are a certain distance from one another:
+                - Time
+                - Location of a
+                - Location of b
+        """
 
         a, b, c = self._get_relative_position_equation_constants()
         c -= distance ** 2
@@ -338,9 +374,12 @@ class RelativeObjects:
         location_b_max = self.object_b_location + self.object_b_velocity * t_max
         max_output = t_max, (location_a_max, location_b_max)
 
+        if math.isclose(determinant, 0.0):
+            return max_output  # Only one solution
+
         t_min = min(t1_dist, t2_dist)
         if t_min < 0:
-            return None, max_output
+            return None, max_output  # Already within distance at t = 0
 
         location_a_min = self.object_a_location + self.object_a_velocity * t_min
         location_b_min = self.object_b_location + self.object_b_velocity * t_min
@@ -348,16 +387,41 @@ class RelativeObjects:
 
         return min_output, max_output
 
-    def time_objects_first_within_distance(self, distance: float):
+    def time_objects_first_within_distance(
+        self, distance: float
+    ) -> Optional[ObjectDistanceInfo]:
+        """Calculates the first time that objects a and b are a certain distance from one another.
+
+        If a and b are always further apart than the given distance, None will be returned
+        If the first time a and b are already within distance of each other, None will be returned
+        args:
+            distance: Distance between objects a and b
+        return:
+            _: Information about the objects when they are a certain distance from one another:
+                - Time
+                - Location of a
+                - Location of b
+        TODO: A return of None can indicate one of two situations (unable to differentiate):
+        """
 
         output = self.times_objects_within_distance(distance)
+
         if not output:
             return
 
         first, _ = output
+
+        if type(first) is float:
+            return output  # Only one solution; first refers to the time
+
         return first
 
-    def _get_relative_position_equation_constants(self):
+    def _get_relative_position_equation_constants(self) -> Tuple[float, float, float]:
+        """
+        calculates the constants for the relative position quadratic equation
+
+        For internal use only
+        """
 
         x1 = self.object_b_velocity.x - self.object_a_velocity.x
         x2 = self.object_b_location.x - self.object_a_location.x
@@ -369,6 +433,3 @@ class RelativeObjects:
         c = x2 ** 2 + y2 ** 2
 
         return a, b, c
-
-
-# print(normalise_angle(6.169999999999913))

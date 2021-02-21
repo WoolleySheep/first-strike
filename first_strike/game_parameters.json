@@ -63,7 +63,6 @@
     "rocket":
     {
         "mass": 100.0,
-        "target_radius": 2.5,
         "length": 5.0,
         "max_main_engine_force": 5000.0,
         "max_thruster_force": 500.0,

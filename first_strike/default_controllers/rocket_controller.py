@@ -261,7 +261,7 @@ class RocketController(Controller):
                 if not self.helpers.is_within_bounds(rocket_location_enter_buffer):
                     continue  # Rocket will be out of bounds before it enters buffer
                 # Check if the rocket will hit the turret before entering the obstacle buffer
-                if time_rocket_hit_turret is None:  #  Only calculate this once per loop
+                if time_rocket_hit_turret is None:  # Only calculate this once per loop
                     turret_location = self.parameters.turret.location
                     rocket2turret = RelativeObjects(
                         rocket_location, turret_location, rocket_velocity

@@ -1,19 +1,21 @@
 import json
 import math
 
-from game_classes import (
-    Visual,
-    EnvironmentParameters,
-    ObstacleParameters,
-    TimeParameters,
-    RocketParameters,
-    TurretParameters,
-    Parameters,
+from history import (
+    History,
     RocketHistory,
     TurretHistory,
-    History,
 )
 from math_helpers import Coordinate
+from parameters import (
+    EnvironmentParameters,
+    ObstacleParameters,
+    Parameters,
+    RocketParameters,
+    TimeParameters,
+    TurretParameters,
+)
+from visual import Visual
 
 
 def process_game_parameters():
@@ -124,7 +126,6 @@ def _validate_game_parameters(game_params):
 
     rocket = game_params["rocket"]
     assert _is_positive_float(rocket["mass"])
-    assert _is_positive_float(rocket["target_radius"])
     assert _is_positive_float(rocket["length"])
     assert _is_positive_float(rocket["max_main_engine_force"])
     assert _is_positive_float(rocket["max_thruster_force"])
@@ -146,8 +147,8 @@ def _validate_game_parameters(game_params):
     )  # Game cannot be shorter than 1 timestep
     assert (
         Coordinate(rocket["start_location"]).distance2(Coordinate(turret["location"]))
-        > turret["radius"] + rocket["target_radius"]
-    )
+        > turret["radius"] + rocket["length"] / 2
+    )  # Rocket cannot be already hitting turret
 
     if environment["obstacles"]:
         assert all(
@@ -155,10 +156,10 @@ def _validate_game_parameters(game_params):
                 Coordinate(rocket["start_location"]).distance2(
                     Coordinate(obstacle["location"])
                 )
-                > obstacle["radius"] + rocket["target_radius"]
+                > obstacle["radius"] + rocket["length"] / 2
                 for obstacle in environment["obstacles"]
             )
-        )
+        )  # Rocket cannot already be hitting any obstacle
         assert all(
             (
                 Coordinate(turret["location"]).distance2(
@@ -167,7 +168,7 @@ def _validate_game_parameters(game_params):
                 > obstacle["radius"] + turret["radius"]
                 for obstacle in environment["obstacles"]
             )
-        )
+        )  # Turret cannot be hitting any obstacle
 
 
 def _store_game_parameters(game_params):
@@ -216,7 +217,6 @@ def _store_game_parameters(game_params):
     rocket_params = game_params["rocket"]
     rocket_params_obj = RocketParameters(
         rocket_params["mass"],
-        rocket_params["target_radius"],
         rocket_params["length"],
         rocket_params["max_main_engine_force"],
         rocket_params["max_thruster_force"],

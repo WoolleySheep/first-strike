@@ -1,7 +1,9 @@
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
-from game_classes import Parameters, History, Visual
+from history import History
+from parameters import Parameters
+from visual import Visual
 
 
 class Animation:

@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 
 from controller_helpers import ControllerHelpers
-from game_classes import History, Parameters
 from helpers import Helpers
+from history import History
+from parameters import Parameters
 from physics import Physics
 
 

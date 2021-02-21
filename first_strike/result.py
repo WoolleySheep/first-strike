@@ -1,6 +1,7 @@
-from game_classes import History, Parameters
-from helpers import Helpers
 from controllers import Controllers
+from helpers import Helpers
+from history import History
+from parameters import Parameters
 
 GAME_ONGOING = None
 

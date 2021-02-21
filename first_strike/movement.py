@@ -1,6 +1,6 @@
 import math
 
-from game_classes import ProjectileHistory
+from history import ProjectileHistory
 from math_helpers import normalise_angle
 
 
