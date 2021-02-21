@@ -55,26 +55,20 @@ class Physics:
 
         return (theta1 - theta2) / timestep
 
-    def get_engine_force(self, engine):
+    def get_engine_force_by_label(self, engine: str) -> float:
 
-        if engine == "main":
-            return self.history.rocket.main_engine_force
-        if engine == "left-front":
-            return self.history.rocket.left_front_thruster_force
-        if engine == "left-rear":
-            return self.history.rocket.left_rear_thruster_force
-        if engine == "right-front":
-            return self.history.rocket.right_front_thruster_force
-        if engine == "right-rear":
-            return self.history.rocket.right_rear_thruster_force
+        labels = self.parameters.rocket.engine_labels
+        forces = self.history.rocket.engine_forces
 
-        raise ValueError(f"Engine must be in {self.parameters.rocket.engine_labels}")
+        for label, force in zip(labels, forces):
+            if engine == label:
+                return force
 
+        raise ValueError(f"Engine must be in {labels}")
 
     #########################
     # TO BE CHANGED
     #########################
-
 
     def calc_main_engine_acceleration(self) -> Coordinate:
 
@@ -119,4 +113,3 @@ class Physics:
         rocket_angle = self.history.rocket.angle
 
         return normalise_angle(rocket_angle - thruster_direction * math.pi / 2)
-

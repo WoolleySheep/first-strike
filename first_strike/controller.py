@@ -9,7 +9,7 @@ from physics import Physics
 
 class Controller(ABC):
     """Abstract base class for all controllers.
-    
+
     Takes the current and past state of the game and generate inputs to the rocket and turret.
     """
 

@@ -149,7 +149,6 @@ class Coordinate:
         p.theta += angle
         return p.pol2cart()
 
-
     def __add__(self, other):
         if isinstance(other, Coordinate):
             return Coordinate(self.x + other.x, self.y + other.y)
@@ -231,7 +230,7 @@ class PolarCoordinate:
 
 class RelativeObjects:
     """Class defining the relationship between two objects moving with constant velocities.
-    
+
     Attributes:
         - object_a_location: The current location of object a.
         - object_b_location: The current location of object b.
@@ -244,7 +243,7 @@ class RelativeObjects:
         - minimum_distance_between_objects: Calculates when and where objects a and b are closest together.
         - times_objects_within_distance: Calculates the times and locations that objects a and b are a given distance apart.
         - time_objects_first_within_distance: Calculates when and where objects a and b are first a given distance apart.
-        
+
     """
 
     def __init__(
@@ -255,7 +254,7 @@ class RelativeObjects:
         object_b_velocity: Coordinate = Coordinate(0.0, 0.0),
     ):
         """Create an instance of RelativeObjects
-        
+
         args:
             - object_a_location: The current location of object a.
             - object_b_location: The current location of object b.

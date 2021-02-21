@@ -45,7 +45,13 @@ class RocketHistory:
     @property
     def engine_forces(self) -> Tuple[float, float, float, float, float]:
 
-        return self.main_engine_force, self.left_front_thruster_force, self.left_rear_thruster_force, self.right_front_thruster_force, self.right_rear_thruster_force
+        return (
+            self.main_engine_force,
+            self.left_front_thruster_force,
+            self.left_rear_thruster_force,
+            self.right_front_thruster_force,
+            self.right_rear_thruster_force,
+        )
 
     @property
     def thruster_forces(self) -> Tuple[float, float, float, float]:

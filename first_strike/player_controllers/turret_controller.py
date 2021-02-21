@@ -6,6 +6,7 @@ from history import History
 from parameters import Parameters
 from physics import Physics
 
+
 class TurretController(Controller):
     def __init__(self, parameters, history, physics, helpers):
         super().__init__(parameters, history, physics, helpers)
