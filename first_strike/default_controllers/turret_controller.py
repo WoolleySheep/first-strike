@@ -9,8 +9,8 @@ from math_helpers import (
 
 
 class TurretController(Controller):
-    def __init__(self, parameters, history, physics, helpers):
-        super().__init__(parameters, history, physics, helpers)
+    def __init__(self, parameters, history):
+        super().__init__(parameters, history)
 
     def calc_inputs(self):
 

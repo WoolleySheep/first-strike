@@ -2,6 +2,7 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.collections as collections
 
+from helpers import Helpers
 from math_helpers import normalise_angle, PolarCoordinate
 from result import (
     DRAW,
@@ -28,15 +29,14 @@ from result import (
 
 
 class Plotting:
-    def __init__(self, visual, parameters, history, helpers, controllers, result):
+    def __init__(self, visual, parameters, history, controllers, result):
         self.visual = visual
         self.parameters = parameters
         self.history = history
-        self.helpers = helpers
+        self.helpers = Helpers(parameters, history)
         self.controllers = controllers
         self.result = result
         self.title = visual.default_title
-        self.plotted_result = False
         self.fig, (self.ax, self.ax2) = plt.subplots(
             1, 2, gridspec_kw={"width_ratios": [5, 1]}
         )
@@ -146,7 +146,6 @@ class Plotting:
 
         if self.result.is_game_over():
             self.set_alpha()
-            self.plotted_result = True
 
     def set_alpha(self):
 

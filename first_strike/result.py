@@ -37,12 +37,11 @@ class Result:
         self,
         parameters: Parameters,
         history: History,
-        helpers: Helpers,
         controllers: Controllers,
     ):
         self.parameters = parameters
         self.history = history
-        self.helpers = helpers
+        self.helpers = Helpers(parameters, history)
         self.controllers = controllers
         self.rocket_controller = controllers.rocket_controller
         self.turret_controller = controllers.turret_controller

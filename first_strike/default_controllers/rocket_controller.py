@@ -1,4 +1,5 @@
 import math
+from typing import Union
 
 from controller import Controller
 from math_helpers import (
@@ -11,12 +12,13 @@ from math_helpers import (
 
 
 class RocketController(Controller):
-    def __init__(self, parameters, history, physics, helpers):
-        super().__init__(parameters, history, physics, helpers)
+    def __init__(self, parameters, history):
+        super().__init__(parameters, history)
 
     def _calc_turret_attraction(self):
 
-        min_turret_pull = 0.005
+        min_turret_pull = 0.01
+        max_turret_pull = 0.1
 
         attraction_angle = self.controller_helpers.calc_angle2turret_relative2rocket()
 
@@ -26,9 +28,11 @@ class RocketController(Controller):
 
         attraction_strength = 1 / (dist2turret - rocket_radius - turret_radius)
 
-        return PolarCoordinate(
-            max(min_turret_pull, attraction_strength), attraction_angle
-        ).pol2cart()
+        clamped_attraction_strength = min(
+            max_turret_pull, max(min_turret_pull, attraction_strength)
+        )
+
+        return PolarCoordinate(clamped_attraction_strength, attraction_angle).pol2cart()
 
     @staticmethod
     def _calc_edge_repulsion(position, boundary):
@@ -136,6 +140,47 @@ class RocketController(Controller):
             else Coordinate(0.0, 0.0)
         )
 
+    def _does_projectile_hit_obstacle_before(
+        self,
+        collision_time: float,
+        projectile_location: Coordinate,
+        projectile_velocity: Coordinate,
+    ) -> bool:
+
+        for obstacle in self.parameters.environment.obstacles:
+            projectile2obstacle = RelativeObjects(
+                projectile_location, obstacle.location, projectile_velocity
+            )
+
+            output = projectile2obstacle.time_objects_first_within_distance(
+                obstacle.radius
+            )
+
+            if not output:
+                continue
+            time_projectile_hits_obstacle, _ = output
+
+            if time_projectile_hits_obstacle < collision_time:
+                return True
+
+        return False
+
+    def _calc_time_rocket_hit_turret(
+        self, rocket_velocity: Coordinate
+    ) -> Union[bool, float]:
+
+        rocket2turret = RelativeObjects(
+            self.history.rocket.location,
+            self.parameters.turret.location,
+            rocket_velocity,
+        )
+
+        output = rocket2turret.time_objects_first_within_distance(
+            self.parameters.turret.radius + self.parameters.rocket.target_radius
+        )
+
+        return output[0] if output else False
+
     def _calc_intersecting_projectile_avoidance(self):
 
         rocket_location = self.history.rocket.location
@@ -172,47 +217,6 @@ class RocketController(Controller):
             if not self.helpers.is_within_bounds(
                 rocket_location_hit
             ) or not self.helpers.is_within_bounds(projectile_location_hit):
-                continue
-
-            # Check if the rocket will hit the turret before it is hit by the projectile
-            if time_rocket_hit_turret is None:  # Only calculate this once per loop
-                turret_location = self.parameters.turret.location
-                rocket2turret = RelativeObjects(
-                    rocket_location, turret_location, rocket_velocity
-                )
-                output = rocket2turret.time_objects_first_within_distance(
-                    self.parameters.turret.radius + self.parameters.rocket.target_radius
-                )
-                if output:  # Rocket will hit turret
-                    time_rocket_hit_turret, _ = output
-                else:
-                    time_rocket_hit_turret = False
-
-            if (
-                time_rocket_hit_turret
-                and time_rocket_hit_turret < time_projectile_hits_rocket
-            ):
-                continue
-
-            # Check if the projectile will hit an obstacle before the projectile hits the rocket
-            obstacle_intercept = False
-            for obstacle in self.parameters.environment.obstacles:
-                projectile2obstacle = RelativeObjects(
-                    projectile_location, obstacle.location, projectile_velocity
-                )
-
-                output = projectile2obstacle.time_objects_first_within_distance(
-                    obstacle.radius
-                )
-                if not output:
-                    continue
-
-                time_projectile_hits_obstacle, _ = output
-                if time_projectile_hits_obstacle < time_projectile_hits_rocket:
-                    obstacle_intercept = True
-                    break
-
-            if obstacle_intercept:
                 continue
 
             dist2collision = rocket_location.distance2(rocket_location_hit)
@@ -260,25 +264,6 @@ class RocketController(Controller):
                 time_rocket_enter_buffer, (rocket_location_enter_buffer, _) = output
                 if not self.helpers.is_within_bounds(rocket_location_enter_buffer):
                     continue  # Rocket will be out of bounds before it enters buffer
-                # Check if the rocket will hit the turret before entering the obstacle buffer
-                if time_rocket_hit_turret is None:  # Only calculate this once per loop
-                    turret_location = self.parameters.turret.location
-                    rocket2turret = RelativeObjects(
-                        rocket_location, turret_location, rocket_velocity
-                    )
-                    output = rocket2turret.time_objects_first_within_distance(
-                        self.parameters.turret.radius
-                        + self.parameters.rocket.target_radius
-                    )
-                    if output:  # Rocket will hit turret
-                        time_rocket_hit_turret, _ = output
-                    else:
-                        time_rocket_hit_turret = False
-                if (
-                    time_rocket_hit_turret
-                    and time_rocket_hit_turret < time_rocket_enter_buffer
-                ):
-                    continue
 
             try:
                 avoidance_strength = 1 / min_dist
@@ -333,51 +318,6 @@ class RocketController(Controller):
                 ) or not self.helpers.is_within_bounds(
                     projectile_location_enter_buffer
                 ):
-                    continue
-
-                # Check if the rocket will hit the turret before it is hit by the projectile
-                if time_rocket_hit_turret is None:  # Only calculate this once per loop
-                    turret_location = self.parameters.turret.location
-                    rocket2turret = RelativeObjects(
-                        rocket_location, turret_location, rocket_velocity
-                    )
-                    output = rocket2turret.time_objects_first_within_distance(
-                        self.parameters.turret.radius
-                        + self.parameters.rocket.target_radius
-                    )
-                    if output:  # Rocket will hit turret
-                        time_rocket_hit_turret, _ = output
-                    else:
-                        time_rocket_hit_turret = False
-
-                if (
-                    time_rocket_hit_turret
-                    and time_rocket_hit_turret < time_rocket_enters_projectile_buffer
-                ):
-                    continue
-
-                # Check if the projectile will hit an obstacle before the projectile hits the rocket
-                obstacle_intercept = False
-                for obstacle in self.parameters.environment.obstacles:
-                    projectile2obstacle = RelativeObjects(
-                        projectile_location, obstacle.location, projectile_velocity
-                    )
-
-                    output = projectile2obstacle.time_objects_first_within_distance(
-                        obstacle.radius
-                    )
-                    if not output:
-                        continue
-
-                    time_projectile_hits_obstacle, _ = output
-                    if (
-                        time_projectile_hits_obstacle
-                        < time_rocket_enters_projectile_buffer
-                    ):
-                        obstacle_intercept = True
-                        break
-
-                if obstacle_intercept:
                     continue
 
             current_dist = (
@@ -511,16 +451,16 @@ class RocketController(Controller):
 
     def _calc_direction(self, safety_buffer=2.0):
 
-        turret_attraction_factor = 40
+        turret_attraction_factor = 60
         edge_avoidance_factor = 30
-        obstacle_avoidance_factor = 25.0
+        obstacle_avoidance_factor = 40.0
         projectile_avoidance_factor = 5.0
-        intersecting_obstacle_avoidance_factor = 100
-        intersecting_projectile_avoidance_factor = 100
-        within_buffer_obstacle_avoidance_factor = 15
+        intersecting_obstacle_avoidance_factor = 50
+        intersecting_projectile_avoidance_factor = 50
+        within_buffer_obstacle_avoidance_factor = 2
         within_buffer_projectile_avoidance_factor = 15
 
-        projectile_path_avoidance_factor = 2
+        projectile_path_avoidance_factor = 4
         firing_path_avoidance_factor = 4
 
         turret_attraction = self._calc_turret_attraction()
@@ -605,7 +545,7 @@ class RocketController(Controller):
         # Current velocity
         rocket_velocity = self.physics.calc_rocket_velocity()
 
-        direction_velocity_ratio = 140.0
+        direction_velocity_ratio = 250.0
 
         thrust_direction = direction_velocity_ratio * direction - rocket_velocity
         thrust_angle = thrust_direction.angle

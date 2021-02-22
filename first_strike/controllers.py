@@ -4,7 +4,7 @@ from meta_controller import RocketMetaController, TurretMetaController
 
 
 class Controllers:
-    def __init__(self, parameters, history, physics, helpers, controller_parameters):
+    def __init__(self, parameters, history, controller_parameters):
         self.parameters = parameters
         self.history = history
         self.state_copy = [None, None]
@@ -13,24 +13,24 @@ class Controllers:
             turret_active_controller,
             rocket_raise_errors,
             turret_raise_errors,
+            rocket_check_execution_time,
+            turret_check_execution_time,
         ) = controller_parameters
         self.rocket_controller = RocketMetaController(
             parameters,
             history,
-            physics,
-            helpers,
             self.state_copy,
             rocket_active_controller,
             rocket_raise_errors,
+            rocket_check_execution_time,
         )
         self.turret_controller = TurretMetaController(
             parameters,
             history,
-            physics,
-            helpers,
             self.state_copy,
             turret_active_controller,
             turret_raise_errors,
+            turret_check_execution_time,
         )
 
     @property

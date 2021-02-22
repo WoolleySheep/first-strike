@@ -79,6 +79,8 @@ def _validate_game_parameters(game_params):
     assert controllers["turret_active_controller"] in ["default", "player"]
     assert type(controllers["rocket_raise_errors"]) is bool
     assert type(controllers["turret_raise_errors"]) is bool
+    assert type(controllers["rocket_check_execution_time"]) is bool
+    assert type(controllers["turret_check_execution_time"]) is bool
 
     visual = game_params["visual"]
     assert _is_positive_float(visual["fps"])
@@ -179,6 +181,8 @@ def _store_game_parameters(game_params):
         controllers["turret_active_controller"],
         controllers["rocket_raise_errors"],
         controllers["turret_raise_errors"],
+        controllers["rocket_check_execution_time"],
+        controllers["turret_check_execution_time"],
     )
 
     visual = game_params["visual"]

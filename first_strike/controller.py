@@ -17,15 +17,13 @@ class Controller(ABC):
         self,
         parameters: Parameters,
         history: History,
-        physics: Physics,
-        helpers: Helpers,
     ):
         self.parameters = parameters
         self.history = history
-        self.physics = physics
-        self.helpers = helpers
+        self.physics = Physics(parameters, history)
+        self.helpers = Helpers(parameters, history)
         self.controller_helpers = ControllerHelpers(
-            parameters, history, physics, helpers
+            parameters, history, self.physics, self.helpers
         )
 
     @abstractmethod

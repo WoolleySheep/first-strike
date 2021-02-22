@@ -1,15 +1,17 @@
 import math
 
+from helpers import Helpers
 from history import ProjectileHistory
 from math_helpers import normalise_angle
+from physics import Physics
 
 
 class Movement:
-    def __init__(self, parameters, history, physics, helpers):
+    def __init__(self, parameters, history):
         self.parameters = parameters
         self.history = history
-        self.physics = physics
-        self.helpers = helpers
+        self.physics = Physics(parameters, history)
+        self.helpers = Helpers(parameters, history)
 
     def move_objects(self):
 
@@ -25,7 +27,6 @@ class Movement:
         self.update_the_time()
 
     def move_the_rocket(self):
-        # TODO: Something in movement is cooked.  Fix it.
 
         timestep = self.parameters.time.timestep
 

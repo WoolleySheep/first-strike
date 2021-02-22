@@ -349,12 +349,7 @@ class RelativeObjects:
             if time < 0:  # If the minimum occurs in the past, set min time to 0
                 time = 0.0
 
-        location_a = self._location(
-            self.object_a_location, self.object_a_velocity, time
-        )
-        location_b = self._location(
-            self.object_b_location, self.object_b_velocity, time
-        )
+        location_a, location_b = self.locations(time=time)
 
         min_dist = location_a.distance2(location_b)
 
@@ -399,8 +394,7 @@ class RelativeObjects:
         t_max = max(t1_dist, t2_dist)
         if t_max < 0:
             return None  # Never within distance for positive time
-        location_a_max = self.object_a_location + self.object_a_velocity * t_max
-        location_b_max = self.object_b_location + self.object_b_velocity * t_max
+        location_a_max, location_b_max = self.locations(t_max)
         max_output = t_max, (location_a_max, location_b_max)
 
         if math.isclose(determinant, 0.0):

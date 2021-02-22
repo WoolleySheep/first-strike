@@ -2,6 +2,7 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
 from history import History
+from movement import Movement
 from parameters import Parameters
 from visual import Visual
 
@@ -12,7 +13,6 @@ class Animation:
         visual: Visual,
         parameters: Parameters,
         history: History,
-        movement,
         controllers,
         plotting,
         result,
@@ -20,7 +20,7 @@ class Animation:
         self.visual = visual
         self.parameters = parameters
         self.history = history
-        self.movement = movement
+        self.movement = Movement(parameters, history)
         self.controllers = controllers
         self.plotting = plotting
         self.result = result
@@ -49,15 +49,14 @@ class Animation:
 
     def update(self, _):
 
-        if not self.plotting.plotted_result:
-            for _ in range(self._ntimesteps_per_frame_refresh()):
-                if not self.result.winner:
-                    self.controllers.process_inputs()
-                    self.result.check_controllers()
-                if not self.result.winner:
-                    self.movement.move_objects()
-                    self.result.check_win_conditions()
+        for _ in range(self._ntimesteps_per_frame_refresh()):
+            if not self.result.winner:
+                self.controllers.process_inputs()
+                self.result.check_controllers()
+            if not self.result.winner:
+                self.movement.move_objects()
+                self.result.check_win_conditions()
 
-            self.plotting.plot_board()
+        self.plotting.plot_board()
 
         return self.plotting.plots

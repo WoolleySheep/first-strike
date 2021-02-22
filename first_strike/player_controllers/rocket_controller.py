@@ -17,10 +17,8 @@ class RocketController(Controller):
         self,
         parameters: Parameters,
         history: History,
-        physics: Physics,
-        helpers: Helpers,
     ):
-        super().__init__(parameters, history, physics, helpers)
+        super().__init__(parameters, history)
 
     def calc_inputs(self) -> Tuple[float, float, float, float, float]:
 

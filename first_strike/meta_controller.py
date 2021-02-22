@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import time
+from typing import Callable
 
 from controller import Controller
 from math_helpers import float_in_range
@@ -23,28 +24,33 @@ class MetaController(Controller, ABC):
         self,
         parameters,
         history,
-        physics,
-        helpers,
         state_copy,
         active_controller,
         raise_errors,
+        check_execution_time,
         default_controller,
         player_controller,
     ):
-        super().__init__(parameters, history, physics, helpers)
+        super().__init__(parameters, history)
 
         self.parameters = parameters
         self.state_copy = state_copy
         controller = (
             default_controller if active_controller == "default" else player_controller
         )
-        self.controller = controller(parameters, history, physics, helpers)
+        self.controller = controller(parameters, history)
         self.raise_errors = raise_errors
+        self.check_execution_time = check_execution_time
         self.error = None
         self.execution_time = None
         self.state_changed = None
         self.inputs = None
         self.inputs_valid = None
+
+        if not self.raise_errors:
+            self.calc_inputs = self._suppress_error_decorator(self.calc_inputs)
+        if self.check_execution_time:
+            self.calc_inputs = self._check_execution_time_decorator(self.calc_inputs)
 
     @property
     def issue_raised(self):
@@ -55,16 +61,26 @@ class MetaController(Controller, ABC):
             or self.execution_time_exceeded
         )
 
-    def calc_inputs(self):
+    def _suppress_error_decorator(self, func: Callable) -> Callable:
+        def wrapper(*args, **kwargs) -> Callable:
+            try:
+                func(*args, **kwargs)
+            except Exception as error:
+                self.error = error
 
-        start_time = time.time()
-        try:
-            self.inputs = self.controller.calc_inputs()
-        except Exception as error:
-            self.error = error
-            if self.raise_errors:
-                raise
-        self.execution_time = time.time() - start_time
+        return wrapper
+
+    def _check_execution_time_decorator(self, func: Callable) -> Callable:
+        def wrapper(*args, **kwargs) -> Callable:
+            start_time = time.time()
+            func(*args, **kwargs)
+            self.execution_time = time.time() - start_time
+
+        return wrapper
+
+    def calc_inputs(self):  # pylint: disable=method-hidden
+
+        self.inputs = self.controller.calc_inputs()
 
     @abstractmethod
     def are_inputs_valid(self):
@@ -103,20 +119,18 @@ class RocketMetaController(MetaController):
         self,
         parameters,
         history,
-        physics,
-        helpers,
         state_copy,
         active_controller,
         raise_errors,
+        check_execution_time,
     ):
         super().__init__(
             parameters,
             history,
-            physics,
-            helpers,
             state_copy,
             active_controller,
             raise_errors,
+            check_execution_time,
             DefaultRocketController,
             PlayerRocketController,
         )
@@ -159,20 +173,18 @@ class TurretMetaController(MetaController):
         self,
         parameters,
         history,
-        physics,
-        helpers,
         state_copy,
         active_controller,
         raise_errors,
+        check_execution_time,
     ):
         super().__init__(
             parameters,
             history,
-            physics,
-            helpers,
             state_copy,
             active_controller,
             raise_errors,
+            check_execution_time,
             DefaultTurretController,
             PlayerTurretController,
         )
