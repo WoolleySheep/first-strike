@@ -15,6 +15,7 @@
 * Random board generator
 * Fix error where rocket is directly behind the turret and flying towards it
 * Add explosion animations
+* Only avoid front arc of fire; find a way to ignore the line behind the barrel
 * Re-add controller complexity: rocket hit turret first, projectile hits obstacle first, etc
 * Make RelativeObjects methods more atomic - only return the time.
     * Locations and distances can be calculated seperately
