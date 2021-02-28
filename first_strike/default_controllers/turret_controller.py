@@ -1,11 +1,7 @@
 import math
 
 from controller import Controller
-from math_helpers import (
-    normalise_angle,
-    RelativeObjects,
-    PolarCoordinate,
-)
+from math_helpers import PolarCoordinate, RelativeObjects, normalise_angle
 
 
 class TurretController(Controller):

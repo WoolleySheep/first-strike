@@ -1,6 +1,5 @@
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-
 from history import History
 from movement import Movement
 from parameters import Parameters

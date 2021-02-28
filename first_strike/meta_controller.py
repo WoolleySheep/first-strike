@@ -1,16 +1,15 @@
-from abc import ABC, abstractmethod
 import time
+from abc import ABC, abstractmethod
 from typing import Callable
 
 from controller import Controller
-from math_helpers import float_in_range
-
 from default_controllers.rocket_controller import (
     RocketController as DefaultRocketController,
 )
 from default_controllers.turret_controller import (
     TurretController as DefaultTurretController,
 )
+from math_helpers import float_in_range
 from player_controllers.rocket_controller import (
     RocketController as PlayerRocketController,
 )

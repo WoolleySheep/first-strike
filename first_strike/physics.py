@@ -1,7 +1,7 @@
 import math
 from typing import Tuple
 
-from math_helpers import normalise_angle, Coordinate, PolarCoordinate
+from math_helpers import Coordinate, PolarCoordinate, normalise_angle
 
 
 class Physics:

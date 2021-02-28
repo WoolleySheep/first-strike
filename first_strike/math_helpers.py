@@ -1,7 +1,7 @@
 """Maths-related functions and classes"""
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 from typing import Optional, Sequence, Tuple, Union
 
 ObjectDistanceInfo = Tuple[float, Tuple["Coordinate", "Coordinate"]]

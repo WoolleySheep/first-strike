@@ -1,30 +1,30 @@
 import math
-import matplotlib.pyplot as plt
-import matplotlib.collections as collections
 
+import matplotlib.collections as collections
+import matplotlib.pyplot as plt
 from helpers import Helpers
-from math_helpers import normalise_angle, PolarCoordinate
+from math_helpers import PolarCoordinate, normalise_angle
 from result import (
-    DRAW,
-    ROCKET_WIN,
-    TURRET_WIN,
-    ROCKET_ERROR,
-    TURRET_ERROR,
-    BOTH_ERROR,
-    ROCKET_TIME_EXCEEDED,
-    TURRET_TIME_EXCEEDED,
-    BOTH_TIME_EXCEEDED,
-    ROCKET_TAMPERED,
-    TURRET_TAMPERED,
-    ROCKET_INPUT_INVALID,
-    TURRET_INPUT_INVALID,
-    BOTH_INPUT_INVALID,
-    ROCKET_OUT_OF_BOUNDS,
-    ROCKET_HIT_OBSTACLE,
-    PROJECTILE_HIT_ROCKET,
-    ROCKET_HIT_TURRET,
     BOTH_DESTROYED,
+    BOTH_ERROR,
+    BOTH_INPUT_INVALID,
+    BOTH_TIME_EXCEEDED,
+    DRAW,
     GAME_TIME_EXCEEDED,
+    PROJECTILE_HIT_ROCKET,
+    ROCKET_ERROR,
+    ROCKET_HIT_OBSTACLE,
+    ROCKET_HIT_TURRET,
+    ROCKET_INPUT_INVALID,
+    ROCKET_OUT_OF_BOUNDS,
+    ROCKET_TAMPERED,
+    ROCKET_TIME_EXCEEDED,
+    ROCKET_WIN,
+    TURRET_ERROR,
+    TURRET_INPUT_INVALID,
+    TURRET_TAMPERED,
+    TURRET_TIME_EXCEEDED,
+    TURRET_WIN,
 )
 
 

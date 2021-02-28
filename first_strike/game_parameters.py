@@ -1,11 +1,7 @@
 import json
 import math
 
-from history import (
-    History,
-    RocketHistory,
-    TurretHistory,
-)
+from history import History, RocketHistory, TurretHistory
 from math_helpers import Coordinate
 from parameters import (
     EnvironmentParameters,

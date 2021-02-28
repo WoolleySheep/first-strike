@@ -3,11 +3,11 @@ from typing import Union
 
 from controller import Controller
 from math_helpers import (
-    normalise_angle,
-    RelativeObjects,
-    average,
     Coordinate,
     PolarCoordinate,
+    RelativeObjects,
+    average,
+    normalise_angle,
 )
 
 

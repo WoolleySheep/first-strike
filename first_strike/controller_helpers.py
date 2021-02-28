@@ -3,8 +3,8 @@ Collection of functions that are useful in the construction of both
 rocket and turret controllers.
 """
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 from typing import Optional
 
 from helpers import Helpers
