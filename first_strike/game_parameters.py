@@ -105,15 +105,13 @@ def _validate_game_parameters(game_params):
 
     if environment["obstacles"]:
         assert all(
-            (
-                _is_obstacle(
-                    obstacle["location"],
-                    obstacle["radius"],
-                    environment["width"],
-                    environment["height"],
-                )
-                for obstacle in environment["obstacles"]
+            _is_obstacle(
+                obstacle["location"],
+                obstacle["radius"],
+                environment["width"],
+                environment["height"],
             )
+            for obstacle in environment["obstacles"]
         )
     else:
         assert environment["obstacles"] is None
@@ -159,13 +157,9 @@ def _validate_game_parameters(game_params):
             )
         )  # Rocket cannot already be hitting any obstacle
         assert all(
-            (
-                Coordinate(turret["location"]).distance2(
-                    Coordinate(obstacle["location"])
-                )
-                > obstacle["radius"] + turret["radius"]
-                for obstacle in environment["obstacles"]
-            )
+            Coordinate(turret["location"]).distance2(Coordinate(obstacle["location"]))
+            > obstacle["radius"] + turret["radius"]
+            for obstacle in environment["obstacles"]
         )  # Turret cannot be hitting any obstacle
 
 
@@ -200,13 +194,14 @@ def _store_game_parameters(game_params):
     )
 
     environment = game_params["environment"]
-    if environment["obstacles"]:
-        obstacles = [
+    obstacles = (
+        [
             ObstacleParameters(Coordinate(obstacle["location"]), obstacle["radius"])
             for obstacle in environment["obstacles"]
         ]
-    else:
-        obstacles = []
+        if environment["obstacles"]
+        else []
+    )
     environment_obj = EnvironmentParameters(
         environment["width"], environment["height"], obstacles
     )

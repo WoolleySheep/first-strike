@@ -22,11 +22,8 @@ class Helpers:
     ) -> bool:
 
         return any(
-            (
-                location.distance2(obstacle.location)
-                <= obstacle.radius + location_radius
-                for obstacle in self.parameters.environment.obstacles
-            )
+            location.distance2(obstacle.location) <= obstacle.radius + location_radius
+            for obstacle in self.parameters.environment.obstacles
         )
 
     def has_rocket_hit_obstacle(self) -> bool:
@@ -62,10 +59,8 @@ class Helpers:
         rocket_location = self.history.rocket.location
 
         return any(
-            (
-                rocket_location.distance2(projectile_location) <= target_radius
-                for projectile_location in self.get_active_projectile_locations()
-            )
+            rocket_location.distance2(projectile_location) <= target_radius
+            for projectile_location in self.get_active_projectile_locations()
         )
 
     def is_game_time_exceeded(self):
@@ -92,7 +87,7 @@ class Helpers:
 
     def get_active_projectile_locations(self):
 
-        return (
+        return [
             self.calc_projectile_location(projectile)
             for projectile in self.history.active_projectiles
-        )
+        ]

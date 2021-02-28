@@ -3,6 +3,7 @@
 
 ### TODO
 * Add typing and docstrings, especially to the user facing stuff
+* Reformat docstrings using modified NumpyDoc format
 * Write "how to play"
 * Review controller helpers and see what can go
 * Consider refactoring meta controller to be composed not inherited; how to define turret and rocket controller differently?

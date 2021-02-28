@@ -243,10 +243,8 @@ class RocketParameters:
         """
 
         return sum(
-            (
-                self.calc_thruster_angular_acc(t, f)
-                for t, f in zip(self.thruster_labels, thruster_forces)
-            )
+            self.calc_thruster_angular_acc(t, f)
+            for t, f in zip(self.thruster_labels, thruster_forces)
         )
 
     def calc_abs_acc(self, force: float) -> float:
@@ -282,10 +280,8 @@ class RocketParameters:
         thruster_forces = engine_forces[1:]
 
         horizontal_acc = sum(
-            (
-                self.get_thruster_force_direction(t) * self.calc_abs_acc(f)
-                for t, f in zip(self.thruster_labels, thruster_forces)
-            )
+            self.get_thruster_force_direction(t) * self.calc_abs_acc(f)
+            for t, f in zip(self.thruster_labels, thruster_forces)
         )
         vertical_acc = self.calc_abs_acc(engine_forces[0])
 

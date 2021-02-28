@@ -1,8 +1,6 @@
 from animation import Animation
 from controllers import Controllers
 from game_parameters import process_game_parameters
-from helpers import Helpers
-from physics import Physics
 from plotting import Plotting
 from result import Result
 

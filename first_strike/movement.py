@@ -61,9 +61,10 @@ class Movement:
             if not projectile.on_board:
                 continue
 
-            projectile.on_board = self.helpers.is_within_bounds(
+            if not self.helpers.is_within_bounds(
                 location
-            ) and not self.helpers.has_hit_obstacle(location)
+            ) or self.helpers.has_hit_obstacle(location):
+                projectile.on_board = False
 
     def should_fire_a_projectile(self):
 

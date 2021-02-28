@@ -185,7 +185,6 @@ class RocketController(Controller):
 
         rocket_location = self.history.rocket.location
         rocket_velocity = self.physics.calc_rocket_velocity()
-        time_rocket_hit_turret = None
 
         intersecting_projectile_avoidance = []
         for projectile in self.history.active_projectiles:
@@ -241,7 +240,6 @@ class RocketController(Controller):
 
         rocket_location = self.history.rocket.location
         rocket_velocity = self.physics.calc_rocket_velocity()
-        time_rocket_hit_turret = None
 
         within_buffer_obstacle_avoidance = []
         for obstacle in self.parameters.environment.obstacles:
@@ -284,7 +282,6 @@ class RocketController(Controller):
 
         rocket_location = self.history.rocket.location
         rocket_velocity = self.physics.calc_rocket_velocity()
-        time_rocket_hit_turret = None
 
         within_buffer_projectile_avoidance = []
         for projectile in self.history.active_projectiles:
@@ -616,22 +613,18 @@ class RocketController(Controller):
         ]
         try:
             min_max_ratio = min(
-                (
-                    max_output / force_ratio
-                    for max_output, force_ratio in zip(
-                        max_outputs, engine_translation_force_ratio
-                    )
+                max_output / force_ratio
+                for max_output, force_ratio in zip(
+                    max_outputs, engine_translation_force_ratio
                 )
             )
         except ZeroDivisionError:
             min_max_ratio = min(
-                (
-                    max_output / force_ratio
-                    for max_output, force_ratio in zip(
-                        max_outputs, engine_translation_force_ratio
-                    )
-                    if not math.isclose(force_ratio, 0.0)
+                max_output / force_ratio
+                for max_output, force_ratio in zip(
+                    max_outputs, engine_translation_force_ratio
                 )
+                if not math.isclose(force_ratio, 0.0)
             )
         translation_engine_forces = [
             min_max_ratio * force_ratio
@@ -641,11 +634,9 @@ class RocketController(Controller):
         try:
 
             max_output_ratio = max(
-                (
-                    output / remaining
-                    for output, remaining in zip(
-                        translation_engine_forces, remaining_outputs
-                    )
+                output / remaining
+                for output, remaining in zip(
+                    translation_engine_forces, remaining_outputs
                 )
             )
         except ZeroDivisionError:  # Remaining thrust is 0; cannot manouver directionally
