@@ -6,10 +6,14 @@ The aim of the game is simple:
 * The turret has to shoot down the rocket
 
 One player will provide the algorithm that controls the rocket, the other play the algorithm for the turret.  May the best algorithm win!
+### Requirements
+* Python v3.8+
+* Basic knowledge of OOP
+### Setup
+1. Clone this repository to your local machine
+2. Install the module requirements using ``pip install -r requirements.txt``
 ### Running a game
-1. Install the module requirements using ``pip install -r requirements.txt``.  This only has to be done once.
-2. Executing the following command: ``python first_strike/game.py``.
-3. Wait for the game window to appear.
+Executing the following command: ``python first_strike/game.py``.
 ### Player vs default controllers
 It is possible to play first strike against either another person's controller, or against the default controller than comes with the game.  
 This is set in ``game_parameters.json`` with the parameters ``rocket_active_controller`` and ``turret_active_controller``.  Setting these to "default" uses the inbuilt controller (aka: the code in ``default_controllers``), while setting it to "player" uses a player-defined controller (``player_controllers``).
