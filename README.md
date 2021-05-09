@@ -13,11 +13,11 @@ One player will provide the algorithm that controls the rocket, the other play t
 It is possible to play first strike against either another person's controller, or against the default controller than comes with the game.  
 This is set in ``game_parameters.json`` with the parameters ``rocket_active_controller`` and ``turret_active_controller``.  Setting these to "default" uses the inbuilt controller (aka: the code in ``default_controllers``), while setting it to "player" uses a player-defined controller (``player_controllers``).
 ### Terminology
-* Controller: When you hear 'controller' think 'algorithm that controls a player object'.  If there is a need to be specific, they will be referred to as the 'rocket controller' and 'turret controller' respectively.
-* Turn: Used interchangably with 'timestep'.  Each game 'turn' is equivalent to one timestep, in which both players can analyse game data and send commands.
+* **Controller**: When you hear 'controller' think 'algorithm that controls a player object'.  If there is a need to be specific, they will be referred to as the 'rocket controller' and 'turret controller' respectively.
+* **Turn**: Used interchangably with 'timestep'.  Each game 'turn' is equivalent to one timestep, in which both players can analyse game data and send commands.
 ### How the game works
-The game is divided into discrete timesteps (let's say 10ms).
-Every 10ms, all of the available game data is made available to the controllers.  This includes:
+The game is divided into discrete timesteps (eg: 10ms).
+Every timestep, all of the available game data is made available to the controllers.  This includes:
 * The current and past positions of all game objects (rocket, turret, projectiles, obstacles)
 * Game object metadata (eg: the radius of each obstacle, how fast a projectile is, etc)
 * Player-controlled object actions (eg: when the turret last fired, current rocket main engine force, etc)
