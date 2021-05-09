@@ -21,7 +21,7 @@ Every timestep, all of the available game data is made available to the controll
 * The current and past positions of all game objects (rocket, turret, projectiles, obstacles)
 * Game object metadata (eg: the radius of each obstacle, how fast a projectile is, etc)
 * Player-controlled object actions (eg: when the turret last fired, current rocket main engine force, etc)
-Using this information, each player's algorithm should calculate what actions to take in the next timestep.
+\Using this information, each player's algorithm should calculate what actions to take in the next timestep.
 The rocket can control:
   * The force produced by its main (rear) engine
   * The force produced by each of its 4 thrusters (left-front, left-rear, right-front, right-rear)
