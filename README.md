@@ -4,6 +4,7 @@
 The aim of the game is simple:
 * The rocket has to crash into the turret
 * The turret has to shoot down the rocket
+
 One player will provide the algorithm that controls the rocket, the other play the algorithm for the turret.  May the best algorithm win!
 ### Running a game
 1. Install the module requirements using ``pip install -r requirements.txt``.  This only has to be done once.
@@ -14,7 +15,6 @@ It is possible to play first strike against either another person's controller, 
 This is set in ``game_parameters.json`` with the parameters ``rocket_active_controller`` and ``turret_active_controller``.  Setting these to "default" uses the inbuilt controller (aka: the code in ``default_controllers``), while setting it to "player" uses a player-defined controller (``player_controllers``).
 ### Terminology
 * **Controller**: When you hear 'controller' think 'algorithm that controls a player object'.  If there is a need to be specific, they will be referred to as the 'rocket controller' and 'turret controller' respectively.
-* **Turn**: Used interchangably with 'timestep'.  Each game 'turn' is equivalent to one timestep, in which both players can analyse game data and send commands.
 ### How the game works
 The game is divided into discrete timesteps (eg: 10ms).
 Every timestep, all of the available game data is made available to the controllers.  This includes:
