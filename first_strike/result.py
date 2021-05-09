@@ -31,6 +31,27 @@ ROCKET_HIT_TURRET = 15
 BOTH_DESTROYED = 16
 GAME_TIME_EXCEEDED = 17
 
+CAUSE2WINNER = {
+    GAME_ONGOING: GAME_ONGOING,
+    ROCKET_ERROR: TURRET_WIN,
+    TURRET_ERROR: ROCKET_WIN,
+    BOTH_ERROR: DRAW,
+    ROCKET_TIME_EXCEEDED: TURRET_WIN,
+    TURRET_TIME_EXCEEDED: ROCKET_WIN,
+    BOTH_TIME_EXCEEDED: DRAW,
+    ROCKET_TAMPERED: TURRET_WIN,
+    TURRET_TAMPERED: ROCKET_WIN,
+    ROCKET_INPUT_INVALID: TURRET_WIN,
+    TURRET_INPUT_INVALID: ROCKET_WIN,
+    BOTH_INPUT_INVALID: DRAW,
+    ROCKET_OUT_OF_BOUNDS: TURRET_WIN,
+    ROCKET_HIT_OBSTACLE: TURRET_WIN,
+    PROJECTILE_HIT_ROCKET: TURRET_WIN,
+    ROCKET_HIT_TURRET: ROCKET_WIN,
+    BOTH_DESTROYED: DRAW,
+    GAME_TIME_EXCEEDED: DRAW,
+}
+
 
 class Result:
     def __init__(
@@ -47,33 +68,13 @@ class Result:
         self.turret_controller = controllers.turret_controller
         self.cause: int = None
 
-    def is_game_over(self):
+    def is_game_over(self) -> bool:
         return bool(self.cause)
 
     @property
-    def winner(self):
+    def winner(self) -> int:
 
-        cause2winner = {
-            GAME_ONGOING: GAME_ONGOING,
-            ROCKET_ERROR: TURRET_WIN,
-            TURRET_ERROR: ROCKET_WIN,
-            BOTH_ERROR: DRAW,
-            ROCKET_TIME_EXCEEDED: TURRET_WIN,
-            TURRET_TIME_EXCEEDED: ROCKET_WIN,
-            BOTH_TIME_EXCEEDED: DRAW,
-            ROCKET_TAMPERED: TURRET_WIN,
-            TURRET_TAMPERED: ROCKET_WIN,
-            ROCKET_INPUT_INVALID: TURRET_WIN,
-            TURRET_INPUT_INVALID: ROCKET_WIN,
-            BOTH_INPUT_INVALID: DRAW,
-            ROCKET_OUT_OF_BOUNDS: TURRET_WIN,
-            ROCKET_HIT_OBSTACLE: TURRET_WIN,
-            PROJECTILE_HIT_ROCKET: TURRET_WIN,
-            ROCKET_HIT_TURRET: ROCKET_WIN,
-            BOTH_DESTROYED: DRAW,
-            GAME_TIME_EXCEEDED: DRAW,
-        }
-        return cause2winner[self.cause]
+        return CAUSE2WINNER[self.cause]
 
     def check_controllers(self):
 

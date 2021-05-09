@@ -28,11 +28,19 @@ class RocketController(Controller):
 
         attraction_strength = 1 / (dist2turret - rocket_radius - turret_radius)
 
-        clamped_attraction_strength = min(
-            max_turret_pull, max(min_turret_pull, attraction_strength)
-        )
+        clamped_attraction_strength = self.clamp(attraction_strength, min_turret_pull, max_turret_pull)
 
         return PolarCoordinate(clamped_attraction_strength, attraction_angle).pol2cart()
+    
+    @staticmethod
+    def clamp(value: float, lower_bound: float, upper_bound: float) -> float:
+        """Clamps a value within a defined range.
+
+        If l < v < u, returns v
+        If v < l, returns l
+        If u < v, returns u
+        """
+        return min(upper_bound, max(lower_bound, value))
 
     @staticmethod
     def _calc_edge_repulsion(position, boundary):
@@ -449,16 +457,16 @@ class RocketController(Controller):
     def _calc_direction(self, safety_buffer=2.0):
 
         turret_attraction_factor = 60
-        edge_avoidance_factor = 30
-        obstacle_avoidance_factor = 40.0
-        projectile_avoidance_factor = 5.0
-        intersecting_obstacle_avoidance_factor = 50
-        intersecting_projectile_avoidance_factor = 50
-        within_buffer_obstacle_avoidance_factor = 2
+        edge_avoidance_factor = 60
+        obstacle_avoidance_factor = 30.0
+        projectile_avoidance_factor = 10
+        intersecting_obstacle_avoidance_factor = 60
+        intersecting_projectile_avoidance_factor = 70
+        within_buffer_obstacle_avoidance_factor = 10
         within_buffer_projectile_avoidance_factor = 15
 
         projectile_path_avoidance_factor = 4
-        firing_path_avoidance_factor = 4
+        firing_path_avoidance_factor = 2
 
         turret_attraction = self._calc_turret_attraction()
         edge_avoidance = self._calc_edge_avoidance()

@@ -43,8 +43,8 @@ class EnvironmentParameters:
 
     Attributes
     ----------
-    width (m): Width of the game board.
-    height (m): Height of the game board.
+    Width (m): Width of the game board.
+    Height (m): Height of the game board.
     Obstacles: All of the obstacles on the board.
     """
 
@@ -90,7 +90,7 @@ class RocketParameters:
     Attributes
     ----------
     mass (kg): Mass of the rocket
-    length (m): Length of the rocket (nose-2-tail)
+    length (m): Length of the rocket (nose-to-tail)
     max_main_engine_force (N): Maximum thrust the main engine can generate.
     max_thruster_force: Maximum thrust each of the thrusters can generate.
     engine_labels: Names of each of the engines.

@@ -61,19 +61,20 @@ class MetaController(Controller, ABC):
         )
 
     def _suppress_error_decorator(self, func: Callable) -> Callable:
-        def wrapper(*args, **kwargs) -> Callable:
+        def wrapper(*args, **kwargs):
             try:
-                func(*args, **kwargs)
+                return func(*args, **kwargs)
             except Exception as error:
                 self.error = error
 
         return wrapper
 
     def _check_execution_time_decorator(self, func: Callable) -> Callable:
-        def wrapper(*args, **kwargs) -> Callable:
+        def wrapper(*args, **kwargs):
             start_time = time.time()
-            func(*args, **kwargs)
+            result = func(*args, **kwargs)
             self.execution_time = time.time() - start_time
+            return result
 
         return wrapper
 
