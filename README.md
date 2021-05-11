@@ -211,6 +211,7 @@ Change the look of the game board and the objects on it.  These have no effect o
 
 ***
 ### MJW TODO (not player related)
+* Re-add requirements.txt
 * Add typing and docstrings, especially to the user facing stuff
 * Reformat docstrings using modified NumpyDoc format
 * Convert type to isinstance
