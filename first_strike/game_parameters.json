@@ -73,11 +73,11 @@
     },
     "turret":
     {
-        "location": [0.0, 0.0],
+        "location": [10.0, 0.0],
         "start_angle": 0.0,
         "radius": 5.0,
         "max_rotation_speed": 1.0,
         "projectile_speed": 60.0,
-        "min_firing_interval": 0.7
+        "min_firing_interval": 1.0
     }
 }

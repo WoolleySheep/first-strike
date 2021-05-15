@@ -1,19 +1,18 @@
 import math
-from typing import Union
+from typing import Union, Tuple
 
 from controller import Controller
 from math_helpers import (
     Coordinate,
     PolarCoordinate,
     RelativeObjects,
+    Line,
     average,
     normalise_angle,
 )
 
 
 class RocketController(Controller):
-    def __init__(self, parameters, history):
-        super().__init__(parameters, history)
 
     def _calc_turret_attraction(self):
 
@@ -28,10 +27,12 @@ class RocketController(Controller):
 
         attraction_strength = 1 / (dist2turret - rocket_radius - turret_radius)
 
-        clamped_attraction_strength = self.clamp(attraction_strength, min_turret_pull, max_turret_pull)
+        clamped_attraction_strength = self.clamp(
+            attraction_strength, min_turret_pull, max_turret_pull
+        )
 
         return PolarCoordinate(clamped_attraction_strength, attraction_angle).pol2cart()
-    
+
     @staticmethod
     def clamp(value: float, lower_bound: float, upper_bound: float) -> float:
         """Clamps a value within a defined range.
@@ -454,19 +455,92 @@ class RocketController(Controller):
             avoidance_angle,
         ).pol2cart()
 
+    def _calc_obstacle_shadow_attraction(self):
+        obstacle_shadow_attraction = []
+        for obstacle in self.parameters.environment.obstacles:
+            if not self._is_closest_point_in_shadow(obstacle.location):
+                continue
+            obstacle_shadow_attraction.append(self._calc_single_obstacle_shadow_attraction(obstacle))
+
+        return (
+            average(obstacle_shadow_attraction)
+            if obstacle_shadow_attraction
+            else Coordinate(0.0, 0.0)
+        )
+
+    def _is_closest_point_in_shadow(self, obstacle: Coordinate) -> bool:
+        turret_location = self.parameters.turret.location
+        line_obstacle2turret = Line.calculate_line(obstacle, turret_location)
+        closest_point = line_obstacle2turret.closest_point_on_line(
+            self.history.rocket.location
+        )
+        dist_closest_point2turret = closest_point.distance2(turret_location)
+        return dist_closest_point2turret > obstacle.distance2(
+            turret_location
+        ) and dist_closest_point2turret > obstacle.distance2(closest_point)
+
+    def _point_in_shadow(self, point: Coordinate, obstacle: Coordinate) -> float:
+        return point.distance2(
+            self.parameters,
+        )
+
+    def _calc_single_obstacle_shadow_attraction(self, obstacle: Coordinate) -> Coordinate:
+
+        # TODO: Make this more efficient by storing it between cycles
+        # TODO: Deal with perfectly vertical gradients
+        angle_turret2obstacle = (obstacle.location - self.parameters.turret.location).angle
+
+        edge_gradients = self.calc_shadow_edge_gradients(obstacle)
+        shadow_attractions = []
+        rocket_location = self.history.rocket.location
+        for gradient in edge_gradients:
+            y_intercept = Line.calculate_y_intercept(
+                gradient, self.parameters.turret.location
+            )
+            shadow_edge_line = Line(gradient, y_intercept)
+            closest_point = shadow_edge_line.closest_point_on_line(rocket_location)
+            strength = 1 / rocket_location.distance2(closest_point)
+            angle_turret2closest_point = (
+                closest_point - self.parameters.turret.location
+            ).angle
+            if normalise_angle(angle_turret2closest_point - angle_turret2obstacle) > 0:
+                rotation = -1
+            else:
+                rotation = 1
+            direction_angle = angle_turret2closest_point + rotation * math.pi / 2
+            shadow_attractions.append(
+                PolarCoordinate(strength, direction_angle).pol2cart()
+            )
+
+        return sum(shadow_attractions)
+
+    def calc_shadow_edge_gradients(self, obstacle) -> Tuple[float, float]:
+        dx = self.parameters.turret.location.x - obstacle.location.x
+        dy = self.parameters.turret.location.y - obstacle.location.y
+        a = obstacle.radius ** 2 - dx ** 2
+        b = 2 * dx * dy
+        c = obstacle.radius ** 2 - dy ** 2
+
+        neg_b = -b
+        sqrt_det = math.sqrt(b ** 2 - 4 * a * c)
+        denom = 2 * a
+
+        return ((neg_b + sqrt_det) / denom, (neg_b - sqrt_det) / denom)
+
     def _calc_direction(self, safety_buffer=2.0):
 
         turret_attraction_factor = 60
-        edge_avoidance_factor = 60
-        obstacle_avoidance_factor = 30.0
+        edge_avoidance_factor = 70
+        obstacle_avoidance_factor = 30
         projectile_avoidance_factor = 10
         intersecting_obstacle_avoidance_factor = 60
         intersecting_projectile_avoidance_factor = 70
-        within_buffer_obstacle_avoidance_factor = 10
+        within_buffer_obstacle_avoidance_factor = 15
         within_buffer_projectile_avoidance_factor = 15
 
-        projectile_path_avoidance_factor = 4
-        firing_path_avoidance_factor = 2
+        projectile_path_avoidance_factor = 10
+        firing_path_avoidance_factor = 10
+        obstacle_shadow_attraction_factor = 15
 
         turret_attraction = self._calc_turret_attraction()
         edge_avoidance = self._calc_edge_avoidance()
@@ -484,6 +558,7 @@ class RocketController(Controller):
         )
         projectile_path_avoidance = self._calc_projectile_path_avoidance()
         firing_path_avoidance = self._calc_firing_path_avoidance()
+        obstacle_shadow_attraction = self._calc_obstacle_shadow_attraction()
 
         return (
             turret_attraction_factor * turret_attraction
@@ -498,6 +573,7 @@ class RocketController(Controller):
             * within_buffer_projectile_avoidance
             + projectile_path_avoidance_factor * projectile_path_avoidance
             + firing_path_avoidance_factor * firing_path_avoidance
+            + obstacle_shadow_attraction_factor * obstacle_shadow_attraction
         )
 
     def is_within_buffer(self, safety_buffer=2.0):

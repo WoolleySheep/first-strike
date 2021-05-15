@@ -149,6 +149,10 @@ class Coordinate:
         p.theta += angle
         return p.pol2cart()
 
+    def normalise(self) -> "Coordinate":
+
+        return self / self.magnitude
+
     def __add__(self, other):
         if isinstance(other, Coordinate):
             return Coordinate(self.x + other.x, self.y + other.y)
@@ -456,3 +460,49 @@ class RelativeObjects:
         c = x2 ** 2 + y2 ** 2
 
         return a, b, c
+
+
+def calculate_equation(coord1, coord2):
+
+    gradient = calculate_gradient(coord1, coord2)
+    return Line(gradient, calculate_y_intercept(gradient, coord1))
+
+
+@dataclass
+class Line:
+    gradient: float
+    y_intercept: float
+
+    @staticmethod
+    def calculate_gradient(coord1: Coordinate, coord2: Coordinate) -> float:
+        return (coord2.y - coord1.y) / (coord2.x - coord1.x)
+
+    @staticmethod
+    def calculate_y_intercept(gradient: float, coord: Coordinate) -> float:
+        return coord.y - gradient * coord.x
+
+    @staticmethod
+    def calculate_line(coord1: Coordinate, coord2: Coordinate) -> "Line":
+        gradient = Line.calculate_gradient(coord1, coord2)
+        y_intercept = Line.calculate_y_intercept(gradient, coord1)
+        return Line(gradient, y_intercept)
+
+    @property
+    def x_intercept(self):
+        return -self.y_intercept / self.gradient
+
+    def value(self, x):
+        return self.gradient * x + self.y_intercept
+
+    def closest_point_on_line(self, point: Coordinate) -> Coordinate:
+        # Get the equation of the line perpendicular to this one that passes through the point
+        inv_gradient = -1 / self.gradient
+        perpendicular_line = Line(
+            inv_gradient, self.calculate_y_intercept(inv_gradient, point)
+        )
+        # Find the point where the line's intersect
+        return self.intercept(perpendicular_line)
+
+    def intercept(self, line2: "Line") -> Coordinate:
+        x = (line2.y_intercept - self.y_intercept) / (self.gradient - line2.gradient)
+        return Coordinate(x, self.value(x))

@@ -71,7 +71,7 @@ The codebase of first-strike is not overly large, but players need only concern 
 
 ``rocket_controller.py`` is edited by the player programming the rocket controller, and vice-versa for the turret.
 
-Each file contains a single class, ``<Rocket/Turret>Controller``, with a basic init and a single method ``calc_inputs``.  The game variables can be read from the attributes of this class, while the the output of ``calc_inputs`` will be treated as commands from the controller.  You are welcome to add your own methods to ``<Rocket/Turret>Controller``, as well as to create new classes.  However try to keep all of your code within a single file.
+Each file contains a single class, ``<Rocket/Turret>Controller``, with a basic init and a single method ``calc_inputs``.  The game variables can be read from the attributes of this class, while the the output of ``calc_inputs`` will be treated as commands from the controller.  You are welcome to add your own methods to ``<Rocket/Turret>Controller``, as well as to create new classes.  ``__init__`` can also be extended (as long as a ``super`` is present).  However try to keep all of your code within a single file.
 ##### Return from calc_inputs method
 The exact format of the return from ``calc_inputs`` depends on whether it is the rocket or turret controller.  If any of the restrictions are broken, then the offending party will immediately lose.
 ###### Rocket commands
@@ -230,8 +230,9 @@ Change the look of the game board and the objects on it.  These have no effect o
 * Re-add controller complexity: rocket hit turret first, projectile hits obstacle first, etc
 * Make RelativeObjects methods more atomic - only return the time.
     * Locations and distances can be calculated seperately
-* Rocket is attracted to areas where the turret's line of fire is blocked by obstacles
+* Fix bug in obstacle shadow code: vertical lines
 * More difficult game mode; turret can't see rocket when it is obscured by an obstacle
 * Cache repeated calls, clear at end of each turn
 * Consolidate projectile launch times into a single varable.  Currently tracked in two places
 * Address game slowdown due to large lists
+* Add unchanged calculations to __init__

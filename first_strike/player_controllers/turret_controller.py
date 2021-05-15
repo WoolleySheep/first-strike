@@ -8,8 +8,6 @@ from physics import Physics
 
 
 class TurretController(Controller):
-    def __init__(self, parameters, history):
-        super().__init__(parameters, history)
 
     def calc_inputs(self) -> Tuple[float, bool]:
 

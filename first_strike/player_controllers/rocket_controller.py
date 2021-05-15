@@ -11,13 +11,6 @@ class RocketController(Controller):
     The calculated inputs must be returned from the calc_inputs method.
     """
 
-    def __init__(
-        self,
-        parameters: Parameters,
-        history: History,
-    ):
-        super().__init__(parameters, history)
-
     def calc_inputs(self) -> Tuple[float, float, float, float, float]:
 
         raise NotImplementedError
