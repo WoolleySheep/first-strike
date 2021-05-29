@@ -236,3 +236,4 @@ Change the look of the game board and the objects on it.  These have no effect o
 * Consolidate projectile launch times into a single varable.  Currently tracked in two places
 * Address game slowdown due to large lists
 * Add unchanged calculations to __init__
+* For history and parameters, don't create a singleton, create 3; one for the game, and one for each player.  Remove edit check.
