@@ -237,3 +237,4 @@ Change the look of the game board and the objects on it.  These have no effect o
 * Address game slowdown due to large lists
 * Add unchanged calculations to __init__
 * For history and parameters, don't create a singleton, create 3; one for the game, and one for each player.  Remove edit check.
+* Refactor game code to not use 2 in function names; save for type conversions
